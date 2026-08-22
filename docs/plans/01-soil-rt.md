@@ -89,3 +89,17 @@ refinements (checker-side only, and later).
 - **Map representation:** sorted vec of pairs with the carried comparator
   closure — trivially correct and canonically ordered for `show`/JSON;
   swap for a tree behind the same API only if profiling demands it.
+
+## Implementation plan
+
+A detailed implementation guide exists at
+[`impls/01-soil-rt-impl.md`](impls/01-soil-rt-impl.md). It records a
+second round of decisions resolved 2026-08-22 — `Value` as a Rust enum
+with nonatomic refcounted boxes, closures as boxed Rust callables,
+hand-rolled canonical encoder with `serde_json` decode, interned
+per-instance `TypeId`s, and `hash` as FNV-1a 64 over canonical JSON bytes
+(also recorded in design §3.7, being language-observable) — plus the
+module map, build order, fixture format, C ABI surface, and a set of
+micro-pins (its §8, approved 2026-08-22, including: all dev dependencies
+managed through a repo-root `shell.nix`, which is also the single pin for
+the Rust toolchain).

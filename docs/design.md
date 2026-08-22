@@ -161,6 +161,7 @@ Implementation: derived per type as new definitions (`Foo::eq`, etc. — `::` is
 - **FFI handles and abstract types:** pointer identity via the `opaque` strategy.
 - **`show` is the JSON encoder** and `read`/`parse` is the decoder. Expect tests compare on JSON. One value format for everything.
 - **Refinements:** erased at runtime; `eq` on `{v:Int | v > 0}` is `eq` on `Int`.
+- **`hash` is FNV-1a 64-bit over the value's canonical JSON encoding** (the `opaque` strategy hashes the address instead). Fixed and documented because `hash` is language-observable and must be deterministic across platforms, runs, and toolchains; hashing the canonical bytes means "equal ⇒ same hash" follows from canonical encoding for free, and there is only one byte-form of a value in the system. Soil maps are comparator-ordered, not hash tables, so keyed/DoS-resistant hashing buys nothing. (Resolved 2026-08-22 with the `soil-rt` implementation plan.)
 - **Large structures:** structural `eq` is O(n); accepted.
 
 **No user override for now.** A first-class override mechanism was discussed and recognized as type classes returning through the side door (coherence, hash/eq agreement, equivalence-relation guarantees). Instead, types may declare one of a small fixed menu of **derivation strategies**:
