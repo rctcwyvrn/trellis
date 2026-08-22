@@ -143,9 +143,10 @@ Top-level keys, in order:
   IDE. Results are cache entries keyed by the hashes (design §6.1), so they
   churn only when inputs do.
 - `oracles`: what the tests depend on beyond the definition itself — the
-  reference implementation (by file hash) and `accepted` definitions used
-  as oracles (by `formal_hash`). A changed oracle re-runs dependent tests
-  (design §4.5).
+  reference implementation (by file hash), `accepted` definitions used as
+  oracles (by `formal_hash`), and CLI oracles (by executable hash):
+  `{ "kind": "cli", "command": "soil0 parse", "hash": "sha256:…" }`. A
+  changed oracle re-runs dependent tests (design §4.5).
 
 ## 6. FFI bindings
 

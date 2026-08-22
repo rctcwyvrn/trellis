@@ -210,8 +210,18 @@ exit        ::= "[" integer "]"
 
 ### 3.6 `reference`
 
-One line: `relpath "::" symbol`, e.g. `ref/stats.py::median`. Python only
-(design §4.5). Attached explicitly by the human, never auto-detected.
+One line, in one of two forms:
+
+```
+line ::= relpath "::" symbol          (Python reference)
+       | "cli" command-line          (CLI oracle)
+```
+
+`ref/stats.py::median` attaches a Python reference implementation. `cli
+soil0 parse` attaches a JSON-in/JSON-out executable as a black-box oracle:
+the daemon passes the test's JSON arguments on stdin and expects canonical
+JSON on stdout (added for the compiler bootstrap; design §4.5). Attached
+explicitly by the human, never auto-detected.
 
 ### 3.7 `allow`
 
