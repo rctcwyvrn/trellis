@@ -1,0 +1,7 @@
+{
+  "types": [],
+  "type": {"tag": "U8"},
+  "canonical": "255",
+  "accepts": [],
+  "rejects": ["256", "-1", "12.5"]
+}

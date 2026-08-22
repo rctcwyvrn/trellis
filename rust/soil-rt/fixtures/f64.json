@@ -1,0 +1,7 @@
+{
+  "types": [],
+  "type": {"tag": "F64"},
+  "canonical": "\"NaN\"",
+  "accepts": [],
+  "rejects": ["\"nan\"", "\"Infinity\"", "null"]
+}

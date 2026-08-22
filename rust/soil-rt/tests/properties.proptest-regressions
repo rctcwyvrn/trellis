@@ -1,0 +1,7 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 7650ca7dc41582803556982ef377a2f857b5269f11ce8bd2fe657a418cad1c77 # shrinks to (shape, values) = (Map(I64, F64), [Map(MapVal { order: Structural, entries: [(I64(0), F64(1.8821735589659427e48))] })])

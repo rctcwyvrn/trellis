@@ -1,0 +1,21 @@
+{
+  "types": [
+    {"name": "Doc",
+     "strategy": {"tag": "Structural"},
+     "body": {"tag": "Record", "value": [
+       {"name": "text", "shape": {"tag": "Utf8"}, "ignored": null},
+       {"name": "copy", "shape": {"tag": "Utf8"}, "ignored": {"tag": "CopyField", "value": "text"}},
+       {"name": "version", "shape": {"tag": "U64"}, "ignored": {"tag": "Const", "value": 1}},
+       {"name": "id", "shape": {"tag": "I64"}, "ignored": null}]}}
+  ],
+  "type": {"tag": "Named", "value": "Doc"},
+  "canonical": "{\"text\":\"hi\",\"id\":7}",
+  "accepts": ["{\"id\":7,\"text\":\"hi\"}"],
+  "rejects": [
+    "{\"text\":\"hi\"}",
+    "{\"text\":\"hi\",\"id\":7,\"version\":1}",
+    "{\"text\":\"hi\",\"id\":7,\"copy\":\"hi\"}",
+    "{\"text\":\"hi\",\"id\":7,\"extra\":0}",
+    "{\"text\":\"hi\",\"text\":\"ho\",\"id\":7}"
+  ]
+}

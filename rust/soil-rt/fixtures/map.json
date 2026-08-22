@@ -1,0 +1,12 @@
+{
+  "types": [],
+  "type": {"tag": "Map", "value": {"key": {"tag": "I64"}, "value": {"tag": "Utf8"}}},
+  "canonical": "[{\"key\":1,\"value\":\"a\"},{\"key\":2,\"value\":\"b\"}]",
+  "accepts": ["[{\"key\":2,\"value\":\"b\"},{\"key\":1,\"value\":\"a\"}]"],
+  "rejects": [
+    "[{\"key\":1,\"value\":\"a\"},{\"key\":1,\"value\":\"b\"}]",
+    "[{\"key\":1}]",
+    "[{\"key\":1,\"value\":\"a\",\"z\":0}]",
+    "{\"1\":\"a\"}"
+  ]
+}

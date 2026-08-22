@@ -1,0 +1,13 @@
+{
+  "types": [
+    {"name": "Shape",
+     "strategy": {"tag": "Structural"},
+     "body": {"tag": "Sum", "value": [
+       {"name": "Point", "payload": null},
+       {"name": "Circle", "payload": {"tag": "F64"}}]}}
+  ],
+  "type": {"tag": "Named", "value": "Shape"},
+  "canonical": "{\"tag\":\"Point\"}",
+  "accepts": [],
+  "rejects": []
+}

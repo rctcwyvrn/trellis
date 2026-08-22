@@ -1,0 +1,22 @@
+[package]
+name = "soil-rt"
+version = "0.1.0"
+edition = "2021"
+description = "The Soil runtime: value model, derived operations, canonical JSON, C ABI"
+license = "GPL-3.0-or-later WITH GCC-exception-3.1"
+
+[lib]
+crate-type = ["rlib", "staticlib"]
+
+[dependencies]
+num-bigint = "0.4"
+ryu = "1"
+itoa = "1"
+serde = "1"
+# float_roundtrip: serde_json's default float parse is not correctly
+# rounded, which breaks canonical round-trips (caught by proptest).
+serde_json = { version = "1", features = ["float_roundtrip"] }
+base64 = "0.22"
+
+[dev-dependencies]
+proptest = "1"

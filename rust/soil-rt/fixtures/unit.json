@@ -1,0 +1,7 @@
+{
+  "types": [],
+  "type": {"tag": "Unit"},
+  "canonical": "null",
+  "accepts": [],
+  "rejects": ["0", "\"null\"", "{}"]
+}

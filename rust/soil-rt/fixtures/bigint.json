@@ -1,0 +1,7 @@
+{
+  "types": [],
+  "type": {"tag": "BigInt"},
+  "canonical": "\"9007199254740992\"",
+  "accepts": ["9007199254740992"],
+  "rejects": ["1.5", "\"twelve\"", "null"]
+}

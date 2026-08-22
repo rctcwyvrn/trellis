@@ -1,0 +1,7 @@
+{
+  "types": [],
+  "type": {"tag": "F64"},
+  "canonical": "-0.0",
+  "accepts": ["-0.0"],
+  "rejects": []
+}

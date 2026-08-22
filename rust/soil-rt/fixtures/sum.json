@@ -1,0 +1,18 @@
+{
+  "types": [
+    {"name": "Shape",
+     "strategy": {"tag": "Structural"},
+     "body": {"tag": "Sum", "value": [
+       {"name": "Point", "payload": null},
+       {"name": "Circle", "payload": {"tag": "F64"}}]}}
+  ],
+  "type": {"tag": "Named", "value": "Shape"},
+  "canonical": "{\"tag\":\"Circle\",\"value\":2.5}",
+  "accepts": ["{\"value\":2.5,\"tag\":\"Circle\"}"],
+  "rejects": [
+    "{\"tag\":\"Square\"}",
+    "{\"tag\":\"Circle\"}",
+    "{\"tag\":\"Point\",\"value\":1}",
+    "{\"tag\":\"Circle\",\"value\":2.5,\"x\":0}"
+  ]
+}

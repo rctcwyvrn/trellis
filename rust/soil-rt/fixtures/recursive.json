@@ -1,0 +1,13 @@
+{
+  "types": [
+    {"name": "Tree",
+     "strategy": {"tag": "Structural"},
+     "body": {"tag": "Sum", "value": [
+       {"name": "Leaf", "payload": {"tag": "I64"}},
+       {"name": "Node", "payload": {"tag": "List", "value": {"tag": "Named", "value": "Tree"}}}]}}
+  ],
+  "type": {"tag": "Named", "value": "Tree"},
+  "canonical": "{\"tag\":\"Node\",\"value\":[{\"tag\":\"Leaf\",\"value\":1},{\"tag\":\"Node\",\"value\":[{\"tag\":\"Leaf\",\"value\":2}]}]}",
+  "accepts": [],
+  "rejects": ["{\"tag\":\"Node\",\"value\":[{\"tag\":\"Twig\"}]}"]
+}

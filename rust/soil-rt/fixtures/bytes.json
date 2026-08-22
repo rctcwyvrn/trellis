@@ -1,0 +1,7 @@
+{
+  "types": [],
+  "type": {"tag": "Bytes"},
+  "canonical": "\"aGVsbG8=\"",
+  "accepts": [],
+  "rejects": ["\"aGVsbG8\"", "\"a GVsbG8=\"", "42"]
+}

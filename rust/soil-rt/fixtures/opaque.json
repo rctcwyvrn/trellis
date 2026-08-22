@@ -1,0 +1,11 @@
+{
+  "types": [
+    {"name": "PyHandle",
+     "strategy": {"tag": "Opaque"},
+     "body": {"tag": "Opaque"}}
+  ],
+  "type": {"tag": "Named", "value": "PyHandle"},
+  "canonical": null,
+  "accepts": [],
+  "rejects": ["\"<handle>\"", "null", "{}"]
+}

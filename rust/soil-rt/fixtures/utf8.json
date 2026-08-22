@@ -1,0 +1,7 @@
+{
+  "types": [],
+  "type": {"tag": "Utf8"},
+  "canonical": "\"a\\\"b\\\\c\\nd\\te\\u0001f — ok\"",
+  "accepts": [],
+  "rejects": ["42", "null"]
+}

@@ -1,0 +1,7 @@
+{
+  "types": [],
+  "type": {"tag": "Named", "value": "Bool"},
+  "canonical": "true",
+  "accepts": [],
+  "rejects": ["{\"tag\":\"True\"}", "1", "\"true\""]
+}
