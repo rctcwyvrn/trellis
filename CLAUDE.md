@@ -15,6 +15,10 @@ implementation.** Do not scaffold code unless asked.
   format and JSON value encoding), `docs/lock-schema.md` (`.lock`
   sidecars), `docs/soil-syntax.md` + `docs/soil-syntax-spec.md` (Soil
   surface syntax), `docs/bootstrap-plan.md` (soil0 → self-hosted soilc).
+- `docs/plans/` holds per-milestone implementation guides. If you are
+  implementing, start from your milestone's plan; its exit criteria define
+  done, and its decision points must go to the user, not be decided
+  unilaterally.
 - `examples/` holds hand-written samples of the formats. They are
   normative illustrations: **every example must conform to the current
   specs**, and the layers must cohere (a `.lock`'s `calls` list matches its

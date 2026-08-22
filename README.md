@@ -28,6 +28,7 @@ record every decision made so far and the reasoning behind each.
 | [`docs/soil-syntax.md`](docs/soil-syntax.md) | Soil surface syntax, the highlights |
 | [`docs/soil-syntax-spec.md`](docs/soil-syntax-spec.md) | Soil surface syntax, elaborated: lexical spec, EBNF, static rules |
 | [`docs/bootstrap-plan.md`](docs/bootstrap-plan.md) | The path from a minimal Rust interpreter (`soil0`) to a self-hosted compiler (`soilc`) written in Trellis itself |
+| [`docs/plans/`](docs/plans/) | Per-milestone implementation guides for future agents, `soil-rt` through the second project |
 
 ## Examples
 

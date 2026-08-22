@@ -106,6 +106,11 @@ Top-level keys, in order:
 ```
 
 - `types`: `ok` | `error`.
+- `termination`: `verified` | `unverified` | `n/a` — whether the claimed
+  row's absence of `div` is established. Until the termination checker
+  exists (plans 04–05), recursive definitions claiming totality carry
+  `unverified`: the demotion philosophy applied to `div` — unproven,
+  visible, tests still gate.
 - `refinements`: `proven` | `demoted` | `none`. Demotion is per design
   §6.4: the function drops to its base ML type for callers, tests remain
   required, and the runtime check stays in release builds (design §3.9).

@@ -543,7 +543,7 @@ Every definition is three files; the module header and private helpers are the t
 
 ## 11. Build order
 
-The build order follows the bootstrap plan (`docs/bootstrap-plan.md`): the compiler itself is the first Trellis project, self-hosted on a minimal Rust implementation that is kept forever as a differential oracle.
+The build order follows the bootstrap plan (`docs/bootstrap-plan.md`): the compiler itself is the first Trellis project, self-hosted on a minimal Rust implementation that is kept forever as a differential oracle. Each milestone has an implementation guide in `docs/plans/`.
 
 1. **`soil0` + `soil-rt`.** A Rust workspace: the runtime crate (values, reference counting, JSON bridge, C ABI with a trivial `main` wrapper from the first commit) and a minimal Soil implementation — parser, ML + effect-row inference, exhaustiveness, tree-walking interpreter, test runner. No refinements, no termination checker, no codegen, no FFI yet. Every pass is exposed as a JSON-in/JSON-out CLI command (`soil0 parse`, `soil0 infer`, `soil0 run`) — the future differential oracles. Deliberately small; interpreted execution is the engine for the whole bootstrap, and slow is accepted.
 2. **The daemon.** Incremental compiler state, LSP, context-bundle assembler, MCP tool surface, lowering jobs with the exit-and-reinvoke question channel, serial queue, agent-CLI provider (Claude Code headless first), REPL endpoint, debug-mode instrumentation, cost telemetry, per-definition locks and the derived manifest. This is where the effort goes; it is smaller than it sounds because the agent CLI supplies the loop.
