@@ -427,7 +427,7 @@ A `prose-stale` state may be auto-cleared when an agent re-reads the prose and c
 - Merge conflicts can only arise when two people edit the same definition, which is a real conflict anyway.
 - **Verbosity is fine.** Fields expected per entry: `formal_hash`, `test_hash`, `prose_hash`, `soil_hash` (covering the Soil body plus transitively referenced private helpers), check status, test status and test mode tags, provenance (`agent`, `human-verified`, `hand-edited`, `prelude-fork`), trust level for FFI bindings (`harvested`, `generated`, `declared-only`), language/format version, `pinned` flag, `accepted` flag, escape hatch list, cycle hash for recursive types, and for FFI bindings the symbol hash plus the Nix store path of the package.
 - **Language versioning:** the lock records which Soil and Trellis versions a lowering targeted, so upgrades do not invalidate silently.
-- **The lock schema** is the next artifact after the `.tr` grammar (§11).
+- **The lock schema is prototyped** in `prototypes/lock-schema.md` with example sidecars in `prototypes/examples/`. Decisions: JSON in the canonical value form (one format, one parser, diff-stable key order); component statuses (`checks` facts plus per-test results) with the `typed`/`tested`/`verified`/`accepted` ladder derived by the IDE, never stored; the lowering record carries `provider` and `model` for audit while costs, retries, and timings stay in the gitignored `f.log`; per-block provenance under `spec.blocks` implements the `@agent` write-back scheme; `oracles` records test-level edges by hash; `accepted` requires no `xfail`/`xpass` results.
 
 ### 6.4 Incremental refinement checking and demotion
 
@@ -502,7 +502,7 @@ Every definition is three files; the module header and private helpers are the t
 
 1. **`.tr` grammar** — *prototyped* in `prototypes/tr-grammar.md` (§4.3) with its follow-up questions resolved: type files carry YAML frontmatter declaring the type's cased name (filenames are snake_case everywhere); property `where` filters use constrained generation, not rejection sampling; the `cram` block is a minimal cram subset (`with file` fixtures, fresh temp dir, literal output, `[n]` exit codes, `trellis call` for real-capability invocation); property-only and cram-only files are valid (`main` and other toplevel functions are typically of that shape); every file carries frontmatter with a required `name` and optional non-semantic `tags` whose vocabulary is declared in `soil.toml`, while file kind stays inferred. Finalization into `docs/` pending.
 2. **JSON encoding of Soil values** — *resolved*: internally tagged sums, type-directed decode, canonical `show` output, opaque one-way `"<handle>"`, functions a hard error (grammar prototype §7). `BigInt` is hybrid by range: a JSON number within ±(2^53−1), a string beyond, and decode accepts either — small values stay readable while big ones survive float-only host JSON parsers.
-3. **Lock entry schema.** *User-owned, next artifact.* Must now also record `.tr` provenance (agent- vs human-written) to distinguish the two vibing tiers, and per-block provenance for the write-back scheme (5).
+3. **Lock entry schema** — *prototyped* in `prototypes/lock-schema.md` (§6.3), including `.tr` provenance for the vibing tiers and per-block provenance for the write-back scheme (5). Newly open from the prototype: whether module entries participate in `accepted`; a fixed naming scheme for derived tests; whether entries pin the prelude-fork hash or leave it global in `soil.toml`.
 4. **Prose-friendly refinement syntax** — *resolved*: labelled `requires`/`ensures` clauses over a shared predicate language (§4.3; grammar prototype §2.3).
 5. **Agent write-back markers** — *tentative proposal* (grammar prototype §8): agent-authored blocks carry `@agent` in the info string; a human edit removes the marker, and an unmarked formal block is pinned — the agent may not change it, only `ask_human`.
 6. **Type invariants:** checked on every constructor call, or only proven at definition sites.
@@ -553,8 +553,8 @@ Every definition is three files; the module header and private helpers are the t
 **Immediate next artifacts:**
 
 - The `.tr` grammar specification — prototyped (`prototypes/tr-grammar.md` plus `prototypes/examples/`, including the JSON value encoding and the refinement prose syntax); to be finalized into `docs/` once the prototype has been exercised.
-- The lock entry schema.
-- The prelude's `read_file` as the first real definition (drafted as `prototypes/examples/read_file.tr`).
+- The lock entry schema — prototyped (`prototypes/lock-schema.md` plus example `.lock` sidecars); to be finalized into `docs/` with the grammar.
+- The prelude's `read_file` as the first real definition (drafted as `prototypes/examples/read_file.tr` with `read_file.lock`).
 
 ---
 

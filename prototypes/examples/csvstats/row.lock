@@ -1,0 +1,31 @@
+{
+  "lock_format": 1,
+  "name": "Row",
+  "kind": "type",
+  "versions": { "trellis": "0.1", "soil": "0.1" },
+  "spec": {
+    "provenance": "human",
+    "hashes": {
+      "formal": "sha256:4d7e02c9",
+      "test": null,
+      "prose": "sha256:88b1f6a3"
+    },
+    "prose_state": "fresh",
+    "blocks": [
+      { "block": "soil-type", "author": "human" },
+      { "block": "invariant", "author": "human" }
+    ],
+    "pinned": false,
+    "escape_hatches": []
+  },
+  "cycle_hash": null,
+  "checks": {
+    "types": "ok",
+    "invariants": "proven",
+    "demoted": []
+  },
+  "tests": [
+    { "name": "invariant non-empty", "tier": "property", "mode": "sandboxed", "origin": "derived", "result": "pass" }
+  ],
+  "accepted": true
+}
