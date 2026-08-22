@@ -13,7 +13,9 @@ Trellis is a design-phase project whose substance is its docs: 6 spec docs in
 `docs/`, 8 milestone plans + 1 impl guide in `docs/plans/`, hand-written format
 examples in `examples/`, and a working Rust crate (`rust/soil-rt`) with
 rustdoc-able API docs. This plan publishes all of it via GitHub Pages at
-`https://rctcwyvrn.github.io/trellis/`.
+`https://trellis-lang.com/` (custom domain, configured in the repo's Pages
+settings; originally planned as `rctcwyvrn.github.io/trellis`, which now
+redirects there — so site paths carry no `/trellis/` prefix).
 
 **Decisions made:**
 
@@ -45,7 +47,7 @@ build-dir = "book"
 [output.html]
 default-theme = "rust"
 git-repository-url = "https://github.com/rctcwyvrn/trellis"
-site-url = "/trellis/book/"
+site-url = "/book/"
 ```
 
 (Exact theme/options adjustable; keep minimal per project ethos.)
@@ -215,5 +217,5 @@ Without this the deploy job fails on first run.
    `_site/` assembled exactly as the workflow does opens with landing links
    resolving to `book/` and `rustdoc/soil_rt/`.
 3. Pushed to `main`: the Actions run is green, and
-   `https://rctcwyvrn.github.io/trellis/` (landing), `/trellis/book/` (docs),
-   and — once `rust/` is pushed — `/trellis/rustdoc/soil_rt/` all render.
+   `https://trellis-lang.com/` (landing), `/book/` (docs),
+   and — once `rust/` is pushed — `/rustdoc/soil_rt/` all render.

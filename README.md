@@ -20,7 +20,7 @@ record every decision made so far and the reasoning behind each.
 
 ## Documents
 
-Rendered at [rctcwyvrn.github.io/trellis](https://rctcwyvrn.github.io/trellis/).
+Rendered at [trellis-lang.com](https://trellis-lang.com/).
 
 | Document | What it covers |
 |---|---|

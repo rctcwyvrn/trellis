@@ -436,6 +436,10 @@ and any performance work beyond the size assertion on `Value`.
 - **`ryu` output drift** (crate update changing formatting) would break
   canonical bytes: the fixtures pin the expected strings, so an update
   that changes output fails loudly; the lockfile pins the version.
+- **`serde_json` float parsing** is imprecise without the
+  `float_roundtrip` feature — found by the property tests during
+  implementation (§8.15). The feature is on; the round-trip property
+  guards against regression.
 - **Map comparator misbehavior** (a comparator that is not a total order)
   silently corrupts the sorted-vec invariant. The runtime does not detect
   it (that is the refinement checker's future job); documented on
@@ -498,6 +502,31 @@ point.
     compiler, later Z3/Python); building outside `nix-shell` is
     unsupported. Cargo continues to manage Rust crate dependencies.
     Location and single-pin choice resolved with the user 2026-08-22.
+
+Items 13–15 were added during implementation (2026-08-22, autonomous
+session) — recorded here and **flagged for user review**:
+
+13. **Decoded maps carry the derived structural order.** A map arriving
+    through JSON has no program-supplied comparator closure to carry, so
+    `MapVal` orders are `Structural` (the derived `compare`) or
+    `Custom(closure)`; decode always builds `Structural`, map operations
+    take the runtime (structural order consults the registry), and the
+    order is structure, not content — `eq`/`compare` see only the
+    entries. Map decode accepts entries in any order (re-sorted) but
+    rejects duplicate keys.
+14. **Ignored-default vocabulary.** `FieldDesc.ignored` holds an
+    `IgnoredDefault`: `Const` (a constant of the field's own shape,
+    scalar-only), `CopyField` (a non-ignored, same-shaped field), or
+    `Native` (an arbitrary embedder thunk — what a Soil default
+    expression eventually compiles to). `Const`/`CopyField` are the
+    serializable subset used by descriptor JSON and fixtures; `Native`
+    does not serialize. The C ABI's `soil_record_new` takes non-ignored
+    fields and refills ignored ones, mirroring decode.
+15. **`serde_json` needs its `float_roundtrip` feature.** The default
+    float parse is not correctly rounded (`1.8821735589659427e48`
+    re-parses to different bits), which breaks canonical round-trips;
+    the round-trip property test caught it. The feature is enabled and
+    pinned in `Cargo.toml` with a comment.
 
 ---
 
