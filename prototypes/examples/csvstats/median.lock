@@ -32,7 +32,8 @@
     "private_helpers": [],
     "calls": [
       { "name": "sort_by", "hash": "sha256:aa90b1f3" },
-      { "name": "len", "hash": "sha256:0d33c2e8" }
+      { "name": "len", "hash": "sha256:0d33c2e8" },
+      { "name": "nth", "hash": "sha256:6b1e94d7" }
     ]
   },
   "checks": {

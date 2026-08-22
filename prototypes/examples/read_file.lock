@@ -26,8 +26,8 @@
     "model": "claude-opus-4-7",
     "private_helpers": [],
     "calls": [
-      { "name": "fs_open", "hash": "sha256:44f7b2e9" },
-      { "name": "utf8_validate", "hash": "sha256:d10a93c5" }
+      { "name": "fs_read_bytes", "hash": "sha256:44f7b2e9" },
+      { "name": "utf8_decode", "hash": "sha256:d10a93c5" }
     ]
   },
   "checks": {

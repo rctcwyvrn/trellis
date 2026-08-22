@@ -10,7 +10,7 @@ commas; surrounding whitespace in a cell is ignored. An empty line, or any
 cell that is not a decimal number, is an error.
 
 ```soil-sig
-parse_row : (line : Utf8) -> Result ParseError Row
+parse_row : (line : Utf8) -> Result Row ParseError
 ```
 
 ```test happy-path

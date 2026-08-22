@@ -8,7 +8,7 @@ Reads an entire file into a UTF-8 string. Returns `Err` if the file does not
 exist, cannot be read, or is not valid UTF-8. Never panics.
 
 ```soil-sig
-read_file : (fs : Fs) -> (path : Path) -> io (Result FsError Utf8)
+read_file : (fs : Fs) -> (path : Path) -> io (Result Utf8 FsError)
 ```
 
 ```test found-and-missing

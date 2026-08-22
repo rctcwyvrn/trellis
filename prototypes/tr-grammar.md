@@ -231,10 +231,12 @@ body    ::= "opaque" | record | sum | type              (last = alias)
 record  ::= "{" field { "," field } "}"
 field   ::= ident ":" type [ "ignored" "=" expr ]
 sum     ::= [ "|" ] ctor { "|" ctor }
-ctor    ::= Ctor [ record ]
+ctor    ::= Ctor [ type ]
 ```
 
-Variant payloads are records (no positional products, design §3.13).
+A variant carries at most one payload of any type; multi-field payloads are
+inline records, since there are no positional products (design §3.13) —
+`Ok a`, but `BadCell { index : U64, text : Utf8 }`.
 Derivation strategies (design §3.7): structural is the default; an `opaque`
 body selects the opaque strategy; the `ignored` field marker selects the
 ignored strategy for that field.
@@ -314,6 +316,7 @@ hand.
 | `Utf8` | string |
 | `Bytes` | string, base64 |
 | `Unit` | `null` |
+| `Bool` | `true` / `false` — a prelude sum type, but the one special case in the sum encoding |
 | record | object; every field present; `ignored` fields omitted by `show`, refilled from their default on decode |
 | sum, nullary variant | `{"tag": "Name"}` |
 | sum, payload variant | `{"tag": "Name", "value": <payload>}` |

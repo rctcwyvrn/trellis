@@ -94,7 +94,7 @@ The effect system is **purely a tracking mechanism**. There are no first-class a
 - `ffi`: calls foreign code; implies `panic`.
 - User-declared algebraic effects are a possible future extension but not part of v1.
 
-There is **no `exn` effect and no exceptions.** `Result e a` is the error channel. Cases that cannot be expressed as `Result` and cannot be proven safe by refinement carry `panic`.
+There is **no `exn` effect and no exceptions.** `Result a e` is the error channel — success type first, as in OCaml and Rust. Haskell's error-first `Either e a` order exists so the partially applied constructor can be the Functor/Monad instance, a motivation that cannot arise in Soil (no type classes, no higher-kinded abstraction), so the more widely known order wins. Cases that cannot be expressed as `Result` and cannot be proven safe by refinement carry `panic`.
 
 **Function application annotations** (the Trellis feature of declaring what a function may call) fall out of the effect system: `f` may call `g` iff `g`'s row is a subset of `f`'s row. The graph view of the IDE is therefore also an effect-flow diagram.
 
@@ -115,7 +115,7 @@ type Fs = opaque
 type Net = opaque
 type Clock = opaque
 
-read_file : Fs -> Path -> io (Result FsError String)
+read_file : Fs -> Path -> io (Result String FsError)
 now       : Clock -> io Time
 ```
 
@@ -154,7 +154,7 @@ Consequences accepted:
 
 With no ad-hoc polymorphism there is exactly one possible `eq` per type, so all four are **auto-derived for every type** rather than opted into as in Rust.
 
-Implementation: derived per type as new definitions (`Foo.eq`, etc.), rather than as polymorphic primitives. The user's reasoning was the ability to statically exclude closures and to give float types a specific treatment. (Both approaches are semantically equivalent given a kind restriction; per-type derivation was the chosen spelling.)
+Implementation: derived per type as new definitions (`Foo::eq`, etc. — `::` is the namespace separator, `.` being reserved for field access), rather than as polymorphic primitives. The user's reasoning was the ability to statically exclude closures and to give float types a specific treatment. (Both approaches are semantically equivalent given a kind restriction; per-type derivation was the chosen spelling.)
 
 - **Functions:** deriving `eq` on a type containing an arrow is a type error.
 - **Floats:** **total order**. NaN is equal to itself and sorts last (Rust's `total_cmp`). `Float` therefore derives all four functions and can be a map key. Decided.
@@ -220,7 +220,7 @@ Writing the runtime as a program and libraryizing it later would be a rewrite.
 
 There is **no blessed general-purpose integer or string type**. The types that exist are those with unambiguous semantics, so that backends, FFI, and refinements all agree:
 
-- Fixed-width integers: `I64`, `U64`, `I32`, `U32`, etc. Overflow is `panic`, or is refinement-checked away.
+- Fixed-width integers: `I64`, `U64`, `I32`, `U32`, etc. Overflow is `panic`, or is refinement-checked away. Integer `/` and `%` are floor division and floor modulus (Python's semantics, matching the reference-implementation language so differential tests agree without adjustment), not C/Rust truncation; a zero divisor is `panic` or refinement-checked away like overflow.
 - `BigInt`: arbitrary precision, implemented in the pure core prelude (not foreign-backed, so it remains `total`). SMT reasons about unbounded integers natively.
 - `F64`: total-ordered (§3.7).
 - `Utf8`: validated UTF-8 bytes, no O(1) indexing. `Bytes` for raw data.
@@ -554,7 +554,8 @@ Every definition is three files; the module header and private helpers are the t
 
 - The `.tr` grammar specification — prototyped (`prototypes/tr-grammar.md` plus `prototypes/examples/`, including the JSON value encoding and the refinement prose syntax); to be finalized into `docs/` once the prototype has been exercised.
 - The lock entry schema — prototyped (`prototypes/lock-schema.md` plus example `.lock` sidecars); to be finalized into `docs/` with the grammar.
-- The prelude's `read_file` as the first real definition (drafted as `prototypes/examples/read_file.tr` with `read_file.lock`).
+- The prelude's `read_file` as the first real definition (drafted as `prototypes/examples/read_file.tr` with `read_file.lock` and `read_file.soil`).
+- A high-level Soil surface syntax: prototyped in `prototypes/soil-syntax.md` (Haskell-style signatures and inline refinements, OCaml-style terms, `decreases` lines, comparison operators as derived-function notation, no imports; guards/`;`/`let?` deliberately absent or deferred), elaborated into a lexical spec, EBNF, and static rules in `prototypes/soil-syntax-spec.md` (OCaml-style match with parenthesized nesting; one connective spelling `and`/`or`/`not` shared by terms and predicates, `implies` predicate-only; shadowing forbidden; `::` namespacing; `..` required in partial record patterns; parameterless `let` bindings with explicit lambdas; a fixed scalar-value-only string escape set; arithmetic operators as notation with overflow/zero-divisor as refinement obligations; `Bool` encoding as JSON booleans). `Result a e` is success-first (§3.3). Full semantics arrive with the Soil core milestone.
 
 ---
 
