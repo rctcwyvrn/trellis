@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trellis</title>
+<meta name="description" content="Trellis: a specification layer, toolchain, and IDE for programs whose implementations are written by AI agents.">
+<style>
+  :root {
+    --bg: #faf9f6;
+    --fg: #1c1b19;
+    --muted: #6b675f;
+    --accent: #2f6f4f;
+    --accent-fg: #ffffff;
+    --card: #ffffff;
+    --border: #e2ddd3;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16181a;
+      --fg: #e8e6e1;
+      --muted: #9a968d;
+      --accent: #5fae87;
+      --accent-fg: #10241a;
+      --card: #1e2124;
+      --border: #33373b;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: Georgia, 'Times New Roman', serif;
+    line-height: 1.65;
+    display: flex;
+    min-height: 100vh;
+    justify-content: center;
+    padding: 3rem 1.25rem;
+  }
+  main { max-width: 42rem; width: 100%; }
+  h1 {
+    font-size: 3rem;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.25rem;
+  }
+  .tagline {
+    font-size: 1.2rem;
+    color: var(--muted);
+    font-style: italic;
+    margin-bottom: 2rem;
+  }
+  p { margin-bottom: 1rem; }
+  strong { font-weight: 700; }
+  .status {
+    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.85rem;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.5rem 0.75rem;
+    margin: 2rem 0;
+    background: var(--card);
+  }
+  nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin: 2rem 0;
+  }
+  nav a {
+    display: inline-block;
+    padding: 0.6rem 1.4rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.95rem;
+    border: 1px solid var(--border);
+    color: var(--fg);
+    background: var(--card);
+  }
+  nav a.primary {
+    background: var(--accent);
+    color: var(--accent-fg);
+    border-color: var(--accent);
+  }
+  nav a:hover { filter: brightness(1.08); }
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  footer a { color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Trellis</h1>
+  <p class="tagline">the human writes the spec; the agent writes the Soil</p>
+
+  <p><strong>Trellis</strong> is a specification layer, toolchain, and IDE
+  for programs whose implementations are written by AI agents.
+  <strong>Soil</strong> is the target language it lowers to: a small,
+  strict, refinement-typed ML with effect tracking — the assembly language
+  of vibe-coding, designed to be easy for a machine to write and easy for a
+  checker to verify, read by humans but rarely written by them.</p>
+
+  <p>The thesis: if an agent writes the implementations, the human-authored
+  layer should consist of prose specifications, types, tests, and
+  structural constraints. Humans write <code>.tr</code> files; an agent
+  lowers each definition to Soil under the supervision of a type checker, a
+  refinement checker, and the tests; a per-definition lock file records the
+  hashes, provenance, and trust status of everything. Nothing that affects
+  correctness exists only in an agent's context.</p>
+
+  <div class="status">status: design phase — the documents record every
+  decision made so far and the reasoning behind each</div>
+
+  <nav>
+    <a class="primary" href="book/">Docs</a>
+    <a href="rustdoc/soil_rt/">Rust API</a>
+    <a href="https://github.com/rctcwyvrn/trellis">GitHub</a>
+  </nav>
+
+  <footer>
+    Docs and examples are CC BY-SA 4.0; code is GPL-3.0-or-later with the
+    GCC Runtime Library Exception —
+    <a href="https://github.com/rctcwyvrn/trellis#licensing">details</a>.
+  </footer>
+</main>
+</body>
+</html>

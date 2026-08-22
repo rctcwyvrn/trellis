@@ -1,0 +1,41 @@
+name: pages
+on:
+  push: { branches: [main] }
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency: { group: pages, cancel-in-progress: true }
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: taiki-e/install-action@v2
+        with: { tool: mdbook }
+      - run: mdbook build            # -> book/
+      - name: rustdoc (skipped until rust/ is committed)
+        run: |
+          if [ -d rust ]; then
+            rustup default stable
+            cargo doc --no-deps --manifest-path rust/Cargo.toml
+          fi
+      - name: assemble site
+        run: |
+          mkdir -p _site
+          cp site/index.html _site/
+          cp -r book _site/book
+          if [ -d rust/target/doc ]; then
+            cp -r rust/target/doc _site/rustdoc
+            printf '<meta http-equiv="refresh" content="0; url=soil_rt/">' > _site/rustdoc/index.html
+          fi
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: _site }
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: { name: github-pages, url: ${{ steps.deployment.outputs.page_url }} }
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

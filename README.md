@@ -20,6 +20,8 @@ record every decision made so far and the reasoning behind each.
 
 ## Documents
 
+Rendered at [rctcwyvrn.github.io/trellis](https://rctcwyvrn.github.io/trellis/).
+
 | Document | What it covers |
 |---|---|
 | [`docs/design.md`](docs/design.md) | The single reference: vision, Soil language design, the Trellis trust model, hashing and locks, the daemon, the IDE, build order |
@@ -53,6 +55,17 @@ files with their `.lock` sidecars and a `.soil` lowering) and the prelude's
   (`Fs`, `Net`, `Clock`, …), and tests pass fakes.
 - **Content-addressed everything.** Unison-style definition hashing makes
   checking incremental and caching exact.
+
+## Licensing
+
+Code is [GPL-3.0-or-later](LICENSE). Components that become part of
+compiled user programs — the `soil-rt` runtime and, later, the prelude and
+batteries — additionally carry the [GCC Runtime Library
+Exception 3.1](LICENSE.exception), so programs built with the toolchain may
+be licensed however their authors choose. Documentation, specifications,
+and examples are [CC BY-SA 4.0](LICENSE.docs). Contributions are accepted
+under the Developer Certificate of Origin (no CLA). The Trellis IDE is a
+separate, closed-source product that shares no code with this repository.
 
 ## Roadmap
 
