@@ -33,43 +33,43 @@
     font-family: Georgia, 'Times New Roman', serif;
     line-height: 1.65;
     display: flex;
-    min-height: 100vh;
     justify-content: center;
-    padding: 3rem 1.25rem;
+    padding: 0 1.25rem 3rem;
   }
-  main { max-width: 42rem; width: 100%; }
+  main { max-width: 44rem; width: 100%; }
+  .mono { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; }
+
+  /* Hero */
+  header {
+    text-align: center;
+    padding: 5rem 0 3rem;
+  }
   h1 {
-    font-size: 3rem;
+    font-size: 4rem;
     letter-spacing: -0.02em;
-    margin-bottom: 0.25rem;
+    line-height: 1.1;
   }
   .tagline {
-    font-size: 1.2rem;
+    font-size: 1.35rem;
     color: var(--muted);
     font-style: italic;
-    margin-bottom: 2rem;
+    margin-top: 0.5rem;
   }
-  p { margin-bottom: 1rem; }
-  strong { font-weight: 700; }
-  .status {
-    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-    font-size: 0.85rem;
-    color: var(--muted);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 0.5rem 0.75rem;
-    margin: 2rem 0;
-    background: var(--card);
+  .pitch {
+    max-width: 34rem;
+    margin: 1.5rem auto 0;
+    font-size: 1.05rem;
   }
   nav {
     display: flex;
     flex-wrap: wrap;
+    justify-content: center;
     gap: 0.75rem;
-    margin: 2rem 0;
+    margin-top: 2rem;
   }
   nav a {
     display: inline-block;
-    padding: 0.6rem 1.4rem;
+    padding: 0.6rem 1.6rem;
     border-radius: 6px;
     text-decoration: none;
     font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
@@ -84,8 +84,56 @@
     border-color: var(--accent);
   }
   nav a:hover { filter: brightness(1.08); }
+  .status {
+    display: inline-block;
+    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.8rem;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.25rem 0.9rem;
+    margin-top: 2rem;
+    background: var(--card);
+  }
+
+  /* At-a-glance cards */
+  .cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin: 1rem 0 3rem;
+  }
+  @media (max-width: 34rem) { .cards { grid-template-columns: 1fr; } }
+  .cards div {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--card);
+    padding: 1rem 1.1rem;
+  }
+  .cards h3 {
+    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.9rem;
+    color: var(--accent);
+    margin-bottom: 0.35rem;
+  }
+  .cards p { font-size: 0.95rem; }
+
+  /* Prose sections */
+  section { margin-bottom: 2.5rem; }
+  h2 {
+    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.4rem;
+    margin-bottom: 1rem;
+  }
+  section p { margin-bottom: 1rem; }
+  strong { font-weight: 700; }
+
   footer {
-    margin-top: 3rem;
     padding-top: 1rem;
     border-top: 1px solid var(--border);
     font-size: 0.85rem;
@@ -96,32 +144,68 @@
 </head>
 <body>
 <main>
-  <h1>Trellis</h1>
-  <p class="tagline">the human writes the spec; the agent writes the Soil</p>
+  <header>
+    <h1>Trellis</h1>
+    <p class="tagline">the human writes the spec; the agent writes the Soil</p>
+    <p class="pitch">A specification layer, toolchain, and IDE for programs
+    whose implementations are written by AI agents.</p>
+    <nav>
+      <a class="primary" href="book/">Docs</a>
+      <a href="rustdoc/soil_rt/">Rust API</a>
+      <a href="https://github.com/rctcwyvrn/trellis">GitHub</a>
+    </nav>
+    <div class="status">status: design phase — every decision recorded, with
+    reasoning</div>
+  </header>
 
-  <p><strong>Trellis</strong> is a specification layer, toolchain, and IDE
-  for programs whose implementations are written by AI agents.
-  <strong>Soil</strong> is the target language it lowers to: a small,
-  strict, refinement-typed ML with effect tracking — the assembly language
-  of vibe-coding, designed to be easy for a machine to write and easy for a
-  checker to verify, read by humans but rarely written by them.</p>
+  <div class="cards">
+    <div>
+      <h3>one file per definition</h3>
+      <p>A function, type, or module header lives in its own
+      <span class="mono">.tr</span> file; its generated
+      <span class="mono">.soil</span> and its <span class="mono">.lock</span>
+      sit beside it.</p>
+    </div>
+    <div>
+      <h3>tests are the root of trust</h3>
+      <p>Humans write the tests that gate lowering; the refinement checker is
+      a ratchet, not the trust root; only the human sets
+      <span class="mono">accepted</span>.</p>
+    </div>
+    <div>
+      <h3>effects and capabilities</h3>
+      <p>Effect rows on types; <span class="mono">io</span> is not ambient —
+      functions take opaque capability values, and tests pass fakes.</p>
+    </div>
+    <div>
+      <h3>content-addressed everything</h3>
+      <p>Unison-style definition hashing makes checking incremental and
+      caching exact.</p>
+    </div>
+  </div>
 
-  <p>The thesis: if an agent writes the implementations, the human-authored
-  layer should consist of prose specifications, types, tests, and
-  structural constraints. Humans write <code>.tr</code> files; an agent
-  lowers each definition to Soil under the supervision of a type checker, a
-  refinement checker, and the tests; a per-definition lock file records the
-  hashes, provenance, and trust status of everything. Nothing that affects
-  correctness exists only in an agent's context.</p>
+  <section>
+    <h2>What it is</h2>
+    <p><strong>Trellis</strong> is the human-facing layer: prose
+    specifications, types, and tests, written in <span class="mono">.tr</span>
+    files — Markdown with formal fenced blocks.</p>
+    <p><strong>Soil</strong> is the target language it lowers to: a small,
+    strict, refinement-typed ML with effect tracking — the assembly language
+    of vibe-coding, designed to be easy for a machine to write and easy for a
+    checker to verify, read by humans but rarely written by them.</p>
+  </section>
 
-  <div class="status">status: design phase — the documents record every
-  decision made so far and the reasoning behind each</div>
-
-  <nav>
-    <a class="primary" href="book/">Docs</a>
-    <a href="rustdoc/soil_rt/">Rust API</a>
-    <a href="https://github.com/rctcwyvrn/trellis">GitHub</a>
-  </nav>
+  <section>
+    <h2>The thesis</h2>
+    <p>If an agent writes the implementations, the human-authored layer
+    should consist of prose specifications, types, tests, and structural
+    constraints. An agent lowers each definition to Soil under the
+    supervision of a type checker, a refinement checker, and the tests; a
+    per-definition lock file records the hashes, provenance, and trust status
+    of everything.</p>
+    <p>Nothing that affects correctness exists only in an agent's
+    context.</p>
+  </section>
 
   <footer>
     Docs and examples are CC BY-SA 4.0; code is GPL-3.0-or-later with the
