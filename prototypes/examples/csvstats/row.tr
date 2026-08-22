@@ -1,0 +1,16 @@
+---
+name: Row
+---
+
+# Row
+
+One parsed CSV row. Construction goes through `parse_row` or row literals;
+every row has at least one cell.
+
+```soil-type
+type Row = { cells : List F64 }
+```
+
+```invariant
+non-empty: len(self.cells) > 0
+```

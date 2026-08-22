@@ -1,0 +1,14 @@
+---
+name: ParseError
+---
+
+# ParseError
+
+Why a CSV line failed to parse. `BadCell` carries the zero-based index of
+the offending cell and its raw text.
+
+```soil-type
+type ParseError =
+  | EmptyLine
+  | BadCell { index : U64, text : Utf8 }
+```

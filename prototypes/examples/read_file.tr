@@ -1,0 +1,26 @@
+---
+name: read_file
+---
+
+# read_file
+
+Reads an entire file into a UTF-8 string. Returns `Err` if the file does not
+exist, cannot be read, or is not valid UTF-8. Never panics.
+
+```soil-sig
+read_file : (fs : Fs) -> (path : Path) -> io (Result FsError Utf8)
+```
+
+```test found-and-missing
+with fs = fake_fs {"config.toml": "port = 8080"}
+(fs, "config.toml") => {"tag": "Ok", "value": "port = 8080"}
+(fs, "missing.toml") => {"tag": "Err", "value": {"tag": "NotFound", "value": {"path": "missing.toml"}}}
+```
+
+One real-mode test against the actual filesystem:
+
+```cram real-read
+with file "config.toml" = "port = 8080"
+$ trellis call read_file '"config.toml"'
+{"tag": "Ok", "value": "port = 8080"}
+```

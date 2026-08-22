@@ -1,0 +1,9 @@
+---
+name: mean
+---
+
+The arithmetic mean of a non-empty list of floats.
+
+```test simple
+([1.0, 2.0, 3.0]) => 2.0
+```

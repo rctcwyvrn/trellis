@@ -1,0 +1,30 @@
+---
+name: parse_row
+tags: [parser]
+---
+
+# parse_row
+
+Parses one CSV line of decimal numbers into a `Row`. Cells are separated by
+commas; surrounding whitespace in a cell is ignored. An empty line, or any
+cell that is not a decimal number, is an error.
+
+```soil-sig
+parse_row : (line : Utf8) -> Result ParseError Row
+```
+
+```test happy-path
+("1.0,2.5,3.0") => {"tag": "Ok", "value": {"cells": [1.0, 2.5, 3.0]}}
+("  4.0 , 5.0") => {"tag": "Ok", "value": {"cells": [4.0, 5.0]}}
+```
+
+```test errors
+("") => {"tag": "Err", "value": {"tag": "EmptyLine"}}
+("1.0,x,3.0") => {"tag": "Err", "value": {"tag": "BadCell", "value": {"index": 1, "text": "x"}}}
+```
+
+Scientific notation is a known gap, blocked on deciding the cell grammar:
+
+```test scientific-notation xfail
+("1e3") => {"tag": "Ok", "value": {"cells": [1000.0]}}
+```

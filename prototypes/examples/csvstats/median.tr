@@ -1,0 +1,45 @@
+---
+name: median
+---
+
+# median
+
+Returns the median of a non-empty list of floats. For an even number of
+elements, returns the mean of the two middle elements.
+
+```soil-sig
+median : (xs : List F64) -> F64
+```
+
+```requires
+non-empty: len(xs) > 0
+```
+
+```ensures
+lower bound: min(xs) <= result
+upper bound: result <= max(xs)
+```
+
+The reference implementation wraps `statistics.median` from the Python
+standard library.
+
+```reference
+ref/stats.py::median
+```
+
+```test odd-length
+([1.0, 3.0, 2.0]) => 2.0
+```
+
+```test even-length
+([1.0, 2.0, 3.0, 4.0]) => 2.5
+```
+
+```test single
+([42.0]) => 42.0
+```
+
+```property order-independent
+forall xs : List F64 where len(xs) > 0
+median(xs) == median(reverse(xs))
+```

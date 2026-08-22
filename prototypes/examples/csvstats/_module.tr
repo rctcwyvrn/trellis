@@ -1,0 +1,17 @@
+---
+name: csvstats
+---
+
+# csvstats
+
+Reads rows of decimal numbers from CSV lines and computes summary
+statistics. The parsing functions own input validation; the statistics
+functions assume validated `Row` values and stay total.
+
+```exports
+parse_row
+median
+mean
+type Row
+type ParseError
+```

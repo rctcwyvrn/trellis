@@ -171,6 +171,8 @@ Implementation: derived per type as new definitions (`Foo.eq`, etc.), rather tha
 | `opaque` | identity | `"<handle>"` | on address |
 | `ignored` | always `True` | omitted | constant |
 
+`ignored` is a per-field marker, not a per-type strategy, and must carry a default expression — total calls only, with the record's other fields in scope — which refills the field wherever a value is materialized without it (JSON decode, `py_to_soil`, host stubs): `cached_word_count : U64 ignored = word_count(text)`. Because there is no mutation (§3.13), the default always reproduces the value the constructor stored, so omission from `show` is lossless. `ignored` thus means "excluded from derivation, reconstructible on demand."
+
 The cases a user override would have served are handled without it: case-insensitive strings via a newtype with normalization in the constructor; ignored cache fields via the `ignored` strategy; FFI handles via `opaque`. Real overrides, if ever needed, are understood to be the addition of a class system and are deferred indefinitely.
 
 ### 3.8 Recursion
@@ -284,14 +286,14 @@ Helpers live at the Soil layer in two forms:
 
 - **Markdown with fenced code blocks.** Prose is freeform Markdown; formal parts (signature, tests, calls) are fenced blocks with designated languages.
 - **Signature:** a combination of English prose and Soil types, as the human prefers. Since the agent owns types, the human may write no formal signature at all.
-- **Minimal valid definition:** one sentence of prose and one expect test. This is the onboarding story.
-- **Filename is identity.** Filenames are static; renaming a file without updating every reference is an error, and the IDE provides refactor-rename. The lock stores the filename; hashes are for invalidation, not identity. No separate name table is needed.
-- **Tests are named blocks**, and a file may contain any number. Names are used by the lock to report failures, by the IDE for click-to-run, and by REPL-to-test promotion to know where to append.
-- **Refinements are written in a prose-friendly, human-readable form** that is still machine-readable (e.g. a `requires:` / `ensures:` block mapping to named predicates), so that agent write-back is legible and pinnable.
+- **Minimal valid definition:** frontmatter naming the definition, one sentence of prose, and one expect test. This is the onboarding story.
+- **Filename is identity.** Filenames are static; renaming a file without updating every reference is an error, and the IDE provides refactor-rename. The lock stores the filename; hashes are for invalidation, not identity. No separate name table is needed. Filenames are lowercase snake_case for every file kind, and every file carries YAML frontmatter with a required `name`: a function's equals the filename stem, a type's is PascalCase with the filename its snake_case form (the one formal record of casing, so identity survives case-insensitive filesystems), a module's equals its directory. File kind itself stays inferred, never declared. Frontmatter also admits optional `tags`, drawn from a vocabulary declared in `soil.toml`: non-semantic, user-extensible metadata for IDE graph filtering and CI policy, hashed under `prose_hash` and never an input to lowering.
+- **Tests are named blocks**, and a file may contain any number. Names are used by the lock to report failures, by the IDE for click-to-run, and by REPL-to-test promotion to know where to append. **Expect tests are call-arrow lines** (`("1,2") => {"tag": "Ok", "value": [1, 2]}`): the function under test is implicit (file = definition), `with` lines bind fake capabilities with pinned seeds, `panic` is a legal outcome only under a `panic` row, and `xfail` is an info-string modifier.
+- **Refinements are written in a prose-friendly, human-readable form** that is still machine-readable. Decided: separate `requires`/`ensures` blocks of `label: predicate` clauses; the signature block stays plain Soil types. Labels are what the lock and checker errors pin; the shared predicate language (also used by type invariants and property tests) is restricted to `total` calls in the decidable fragment. `ensures` on a `Result` uses `result is Ok(v) implies …`.
 - **There is no `calls` annotation.** The original "function application annotation" idea is fully subsumed by effect rows and capabilities: a function without a `Net` argument cannot reach the network regardless of what it calls. Call edges are tracked by the lock for the graph view but are not human-written.
-- **Values:** JSON, with a block drag-and-drop UI in the IDE for constructing them. Every Trellis type is round-trippable through JSON; this is also the derivation mechanism for `show`/`eq` (§3.7).
+- **Values:** JSON, with a block drag-and-drop UI in the IDE for constructing them. Every Trellis type is round-trippable through JSON; this is also the derivation mechanism for `show`/`eq` (§3.7). **Sum types are internally tagged** (`{"tag": "Ok", "value": …}`; nullary variants `{"tag": "None"}`): one uniform shape for every variant, self-describing for hosts and generic tooling. The verbosity is accepted because the IDE's widgets, not humans, write and read these values. Decoding is always type-directed; `show` output is canonical (declaration-order fields, comparator-order maps, shortest round-trip floats) so expect tests compare on the string. Full encoding table in the grammar prototype.
 - **Type definitions** are definitions: prose plus a shape (or agent-inferred shape) plus optional invariants expressed as refinements on aliases, which are checked as properties every constructor must preserve. Confirmed; whether invariants are checked on every constructor call or only proven at definition sites is an open detail (§9).
-- **The `.tr` grammar** (which fenced block languages exist, e.g. `soil-sig`, `json-test`, `property`, `calls`) is the next artifact to be written (§11).
+- **The `.tr` grammar** is prototyped in `prototypes/tr-grammar.md` with worked examples in `prototypes/examples/`. The reserved block languages are `soil-sig`, `requires`, `ensures`, `test`, `property`, `cram`, `reference`, `allow`, `soil-type`, `invariant`, `exports`; fenced blocks in any other language are prose. Finalization into `docs/` is pending (§11).
 
 ### 4.4 Module structure
 
@@ -317,7 +319,7 @@ Tiers, expressed as a lattice the manifest can describe:
 - **FFI bindings get auto-generated contract tests, not human-written behavioural tests.** A binding's spec is "faithfully cross the boundary," and that is checkable without understanding the library. The daemon derives contract tests from the signature and effect row: a call with an obvious valid input yields `Ok`; an invalid input yields `Err`, not `panic`; returned handles are accepted by the sibling bindings for that type; a loop of calls under the debug runtime's leak checker shows no growth; Soil values survive `soil_to_py`/`py_to_soil` unchanged. The human supplies prose and at most one example input. The lock records tests as `contract` rather than `expect`, so the trust level stays visible. Behavioural correctness of foreign code is not the binding's job; it is caught one level up by the user's own tested functions, which is the same place a hand-written wrapper around a C library would fail.
 - **Harvested tests remain optional and strictly better** when the foreign library has examples or a test suite worth translating. Trust level `harvested` vs `contract` is recorded in the lock.
 - **Refined bindings need one real test per refinement.** A refinement on a binding (e.g. `{p | valid_regex p} -> total Regex`) does work for downstream proofs that contract tests do not exercise, so each refinement requires one human-written counterexample. Most bindings carry no refinements.
-- **`io` testing:** fake capabilities (§3.5) are the primary mode. Cram tests against real side effects are the fallback for the individual user and for the FFI boundary, where fakes stop being possible. The lock tags a function's `io` tests with their mode so additional modes can be added later without a format change.
+- **`io` testing:** fake capabilities (§3.5) are the primary mode. Cram tests against real side effects are the fallback for the individual user and for the FFI boundary, where fakes stop being possible. A cram transcript runs in a fresh temp dir with `with file` fixtures and may invoke built binary targets or `trellis call <def> <json-args>` (any `io` definition, real `World`-derived capabilities, canonical JSON out) — the real-mode escape for non-`main` functions. Cram never runs inside the lowering sandbox (§4.6). The lock tags a function's `io` tests with their mode so additional modes can be added later without a format change.
 
 ### 4.6 Lowering
 
@@ -413,7 +415,7 @@ Because cross-definition mutual recursion is forbidden (§3.8), the definition g
 | Hash | Covers | On change |
 |---|---|---|
 | `formal_hash` | Signature, effect row, refinements, import set | Must re-lower or re-verify |
-| `test_hash` | Human-written tests | Must re-lower or re-verify |
+| `test_hash` | Human-written tests; the `reference` attachment | Must re-lower or re-verify (a reference change re-runs differential tests only — the reference is an oracle, not an input to lowering) |
 | `prose_hash` | Everything else | Flag `review-suggested`; existing lowering stays valid |
 
 A `prose-stale` state may be auto-cleared when an agent re-reads the prose and confirms the existing Soil still matches. This gives a cheap round-trip check without forced regeneration. Prose is thus "somewhere between hashed exactly and allowed to drift."
@@ -465,7 +467,7 @@ The IDE experience is the primary goal; the first milestone is a tool the author
 
 ```
 soil/
-  soil.toml            -- deps, prelude fork, build targets, CI policy
+  soil.toml            -- deps, prelude fork, build targets, CI policy, tag vocabulary
   soil.lock            -- derived global manifest, gitignored
   parser/
     _module.tr         -- module prose, export list
@@ -498,11 +500,11 @@ Every definition is three files; the module header and private helpers are the t
 
 ## 9. Open questions
 
-1. **`.tr` grammar** (fenced block languages, minimal file). *User-owned, next artifact.*
-2. **JSON encoding of Soil values** (sum-type convention, opaque representation, functions as a hard error). *User-owned, to be written with the spec.* This is simultaneously the `show` format, test format, REPL format, and host-stub format.
-3. **Lock entry schema.** *User-owned, next artifact.* Must now also record `.tr` provenance (agent- vs human-written) to distinguish the two vibing tiers.
-4. **Prose-friendly refinement syntax** and the mechanism for mapping prose predicates to checkable ones.
-5. **Agent write-back markers** and the rule when a human edits an agent-authored part (presumably: it becomes pinned).
+1. **`.tr` grammar** — *prototyped* in `prototypes/tr-grammar.md` (§4.3) with its follow-up questions resolved: type files carry YAML frontmatter declaring the type's cased name (filenames are snake_case everywhere); property `where` filters use constrained generation, not rejection sampling; the `cram` block is a minimal cram subset (`with file` fixtures, fresh temp dir, literal output, `[n]` exit codes, `trellis call` for real-capability invocation); property-only and cram-only files are valid (`main` and other toplevel functions are typically of that shape); every file carries frontmatter with a required `name` and optional non-semantic `tags` whose vocabulary is declared in `soil.toml`, while file kind stays inferred. Finalization into `docs/` pending.
+2. **JSON encoding of Soil values** — *resolved*: internally tagged sums, type-directed decode, canonical `show` output, opaque one-way `"<handle>"`, functions a hard error (grammar prototype §7). `BigInt` is hybrid by range: a JSON number within ±(2^53−1), a string beyond, and decode accepts either — small values stay readable while big ones survive float-only host JSON parsers.
+3. **Lock entry schema.** *User-owned, next artifact.* Must now also record `.tr` provenance (agent- vs human-written) to distinguish the two vibing tiers, and per-block provenance for the write-back scheme (5).
+4. **Prose-friendly refinement syntax** — *resolved*: labelled `requires`/`ensures` clauses over a shared predicate language (§4.3; grammar prototype §2.3).
+5. **Agent write-back markers** — *tentative proposal* (grammar prototype §8): agent-authored blocks carry `@agent` in the info string; a human edit removes the marker, and an unmarked formal block is pinned — the agent may not change it, only `ask_human`.
 6. **Type invariants:** checked on every constructor call, or only proven at definition sites.
 7. **Naming conventions** for agent-created private helpers.
 
@@ -550,9 +552,9 @@ Every definition is three files; the module header and private helpers are the t
 
 **Immediate next artifacts:**
 
-- The `.tr` grammar specification, including the JSON value encoding and the refinement prose syntax.
+- The `.tr` grammar specification — prototyped (`prototypes/tr-grammar.md` plus `prototypes/examples/`, including the JSON value encoding and the refinement prose syntax); to be finalized into `docs/` once the prototype has been exercised.
 - The lock entry schema.
-- The prelude's `read_file` as the first real definition.
+- The prelude's `read_file` as the first real definition (drafted as `prototypes/examples/read_file.tr`).
 
 ---
 
