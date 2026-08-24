@@ -1,0 +1,8 @@
+read_file : (fs : Fs) -> (path : Path) -> io (Result Utf8 FsError)
+read_file fs path =
+  match fs_read_bytes fs path with
+  | Err e -> Err e
+  | Ok bytes ->
+    match utf8_decode bytes with
+    | Ok text -> Ok text
+    | Err _ -> Err (NotUtf8 { path = path })

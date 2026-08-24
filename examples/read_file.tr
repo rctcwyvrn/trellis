@@ -12,7 +12,7 @@ read_file : (fs : Fs) -> (path : Path) -> io (Result Utf8 FsError)
 ```
 
 ```test found-and-missing
-with fs = fake_fs {"config.toml": "port = 8080"}
+with fs = fake_fs [{"key": "config.toml", "value": "port = 8080"}]
 (fs, "config.toml") => {"tag": "Ok", "value": "port = 8080"}
 (fs, "missing.toml") => {"tag": "Err", "value": {"tag": "NotFound", "value": {"path": "missing.toml"}}}
 ```

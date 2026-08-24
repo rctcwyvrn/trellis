@@ -1,0 +1,24 @@
+sort_by : (f : F64 -> F64) -> List F64 -> List F64
+sort_by f xs =
+  let rec insert = fun x ys ->
+    let n = list_len ys in
+    let rec go = fun i acc placed ->
+      if i == n
+      then
+        if placed
+        then acc
+        else list_append acc x
+      else
+        let y = list_nth ys i in
+        if not placed and f x <= f y
+        then go (i + 1) (list_append (list_append acc x) y) True
+        else go (i + 1) (list_append acc y) placed
+    in
+    go 0 list_empty False
+  in
+  let rec sort = fun j out ->
+    if j == list_len xs
+    then out
+    else sort (j + 1) (insert (list_nth xs j) out)
+  in
+  sort 0 list_empty

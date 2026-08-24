@@ -1,0 +1,2 @@
+f : I64
+f = let rec _ = 1 in 2

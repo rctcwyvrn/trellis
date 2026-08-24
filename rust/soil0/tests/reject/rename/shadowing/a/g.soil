@@ -1,0 +1,2 @@
+g : I64 -> I64
+g one = one

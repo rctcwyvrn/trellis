@@ -29,6 +29,8 @@ pub use value::{
 /// the allocation accounting. No global state — embedders hold this and
 /// pass it explicitly; over the C ABI it is the `SoilRuntime*` handle.
 /// An instance and every value created under it belong to one thread.
+pub use num_bigint::BigInt;
+
 #[derive(Default)]
 pub struct Runtime {
     pub registry: Registry,

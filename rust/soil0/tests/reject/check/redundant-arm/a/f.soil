@@ -1,0 +1,2 @@
+f : Bool -> I64
+f b = match b with | True -> 1 | _ -> 0 | False -> 2

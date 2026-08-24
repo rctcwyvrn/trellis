@@ -14,7 +14,7 @@ enter the system here, as passes.
 ## Scope
 
 Passes in order; each is a Trellis module of pure functions with the AST
-as Trellis type definitions (the JSON schema from `docs/soil0-cli.md` is
+as Trellis type definitions (the JSON schema from `docs/contracts/soil0-cli.md` is
 the conformance target — `soilc`'s AST types must round-trip it).
 
 1. **Lexer.** Warm-up; oracle `soil0 lex`.
@@ -59,6 +59,20 @@ never deleted.
 itself → `soilc₁`; `soilc₁` compiles the same sources → `soilc₂`; the
 build fails unless `soilc₁ ≡ soilc₂` byte-identical. Then the daemon uses
 `soilc₁` for execution, keeping `soil0` for differential runs.
+
+## Adoptions (2026-08-23, agentlanguages survey)
+
+For the refinement-checker pass (and the runtime guards it emits):
+
+- **Three-way solver outcome** (design §6.4): unsat = `proven`;
+  unknown/timeout = `runtime` (the only demotion); **sat with a model
+  fails the lowering**, the counterexample becoming a structured repair
+  input and an offered expect test.
+- **Assurance per clause** (design §6.4, lock-schema §4): the checker
+  emits `proven`/`runtime`/`trusted` per clause label.
+- **Blame in every emitted guard** (design §6.4): `requires` violations
+  fault the caller, `ensures`/`invariant` the callee; carried in
+  `SoilError` so the daemon routes repairs.
 
 ## Non-goals
 

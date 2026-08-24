@@ -67,6 +67,7 @@ A graph-oriented IDE over the definition graph, with an interactive lowering int
 | Data | Sum types, product types, type aliases/typedefs | Standard ML data modelling. |
 | Pattern matching | Yes | Standard. |
 | Minimalism | "There is only one way to do something" | Less surface for the agent to hallucinate, more for the checker to catch. |
+| Spec size | The core language reference carries a CI-enforced token budget | Adopted 2026-08-23 (survey §4.4, after Mog): every language addition must pay for itself against a fixed budget (target: core reference under ~8k tokens), which operationalizes "as simple as possible" into a measurable gate and keeps the whole-spec-in-context lowering strategy viable. |
 | Intermediate representation | ANF preferred over CPS for the mid-end | Easier to optimize for register machines and the JVM; easier for an agent to read when debugging lowering failures. |
 
 ### 3.2 Refinement types, not full dependent types
@@ -128,7 +129,7 @@ main w =
   ...
 ```
 
-**Testing:** the prelude provides fake capabilities of the same type (`fake_fs [("config.toml", "...")]`), so a function under test cannot distinguish a real capability from a fake. The capability *is* the handler, passed by hand; no effect handlers are needed.
+**Testing:** the prelude provides fake capabilities of the same type (`fake_fs [{"key": "config.toml", "value": "..."}]`, taking a `Map` in the canonical value encoding), so a function under test cannot distinguish a real capability from a fake. The capability *is* the handler, passed by hand; no effect handlers are needed.
 
 **Capability set (confirmed):** `Fs`, `Net`, `Clock`, `Env`, `Proc`, `Rand`, `Py`.
 
@@ -172,7 +173,7 @@ Implementation: derived per type as new definitions (`Foo::eq`, etc. — `::` is
 | `opaque` | identity | `"<handle>"` | on address |
 | `ignored` | always `True` | omitted | constant |
 
-`ignored` is a per-field marker, not a per-type strategy, and must carry a default expression — total calls only, with the record's other fields in scope — which refills the field wherever a value is materialized without it (JSON decode, `py_to_soil`, host stubs): `cached_word_count : U64 ignored = word_count(text)`. Because there is no mutation (§3.13), the default always reproduces the value the constructor stored, so omission from `show` is lossless. `ignored` thus means "excluded from derivation, reconstructible on demand."
+`ignored` is a per-field marker, not a per-type strategy, and must carry a default expression — total calls only, with the record's other fields in scope — which refills the field wherever a value is materialized without it (JSON decode, `py_to_soil`, host stubs): `cached_word_count : U64 ignored = word_count text`. Because there is no mutation (§3.13), the default always reproduces the value the constructor stored, so omission from `show` is lossless. `ignored` thus means "excluded from derivation, reconstructible on demand."
 
 The cases a user override would have served are handled without it: case-insensitive strings via a newtype with normalization in the constructor; ignored cache fields via the `ignored` strategy; FFI handles via `opaque`. Real overrides, if ever needed, are understood to be the addition of a class system and are deferred indefinitely.
 
@@ -216,6 +217,7 @@ Writing the runtime as a program and libraryizing it later would be a rewrite.
 - **Primitive types:** strings, integers, floats in all the variants the FFI targets need, with the stdlib providing interop. Defining these with the FFI in mind from day one is a known requirement; the specific technical decisions are deferred (§10).
 - **Host stub erasure rule (confirmed):** an exported Soil function with effects `io, panic` becomes a host-language function that may raise `SoilError`; capabilities become host-side objects passed in. The generated `.pyi`/`.d.ts` stub documents the effect row. Decided once, applied to every host language. In debug mode `SoilError` is structured and carries the trace, the demoted refinement if any, and the JSON inputs, so host test suites can locate Soil bugs.
 - **Foreign values are opaque handles and carry no refinements.** A `Py` handle stays a handle; refinements could be invalidated by foreign mutation, so they attach only to Soil values. Converting a handle to a Soil value is an explicit, visible call (`py_to_soil`) whose cost the caller chooses to pay. Big structures stay in Python and are manipulated by handle-in, handle-out batteries functions; small results cross the boundary and may be refined after conversion. Rust-backed batteries differ: Rust structures are owned by Soil's runtime and are therefore ordinary Soil values, refinable and potentially `total`, with no conversion and no capability (capabilities are about the world, not the implementing language; a Rust function that does no `io` takes none).
+- **The JSON value model must suffice for remote marshalling** (constraint adopted 2026-08-23, survey §7). `soil_to_py`/`py_to_soil` are defined over the same JSON-shaped value model as `show` and tests; nothing non-serializable may sneak into the FFI boundary, because the deferred co-process isolation mode (§10) — the Python interpreter in a child process, calls marshalled over a pipe, handles as remote references — must be implementable as a deployment mode of the existing marshalling layer, not a second one.
 
 ### 3.12 Primitive types
 
@@ -226,7 +228,7 @@ There is **no blessed general-purpose integer or string type**. The types that e
 - `F64`: total-ordered (§3.7).
 - `Utf8`: validated UTF-8 bytes, no O(1) indexing. `Bytes` for raw data.
 
-A default literal type exists for ergonomics (`1` is `I64`, `"..."` is `Utf8`), which is the only concession. The pressure to make `I64` and `Utf8` feel general-purpose falls on the prelude, not the language. The Python batteries layer (§5) uses `BigInt` at its boundary because that is what Python numbers are.
+A default literal type exists for ergonomics (`1` is `I64`, `"..."` is `Utf8`), which is the only concession. The pressure to make `I64` and `Utf8` feel general-purpose falls on the prelude, not the language. `Unit` has no literal (there is no `()` in the grammar); the kernel/prelude value `unit : Unit` is the one way to produce it (resolved 2026-08-22 with the soil0 CLI contract, which pre-registers it as a builtin value). The Python batteries layer (§5) uses `BigInt` at its boundary because that is what Python numbers are.
 
 ### 3.13 Mutation and records
 
@@ -239,6 +241,24 @@ A default literal type exists for ergonomics (`1` is `I64`, `"..."` is `Utf8`), 
 Export lists name functions **and types explicitly**. If an exported function's signature references a type that is not exported, it is an error the agent must repair, with two permitted repairs: export the type, or mark it as intentionally **abstract** (callers may hold values of it but not inspect them). Abstract types are therefore a deliberate feature rather than an accident.
 
 `main` is an ordinary definition with effect `io` and a `World` argument; it has a `.tr`, tests (cram only), and a lock. `soil.toml` names it as the entrypoint and it receives no other special treatment.
+
+### 3.15 Namespacing and name resolution
+
+Constructors live in their type's namespace and qualify as `Type::Ctor` (`::` being the namespace separator, §3.7). Resolution has **exactly one legal spelling per context**: a bare constructor (`Ok`, `None`) is legal iff its variant name is unique among the sum types in scope — and is then the *only* legal form; when two types in scope share a variant name, `Type::Ctor` is required. Qualifying a unique constructor is an error. The rule applies identically in expressions, patterns, and the predicate language's `is` tests.
+
+**Definition names resolve by the same rule** (resolved 2026-08-22, surfaced by the soil0 renamer). Soil has no imports — names resolve through the manifest (§6.1) — and a bare definition name is legal iff it is unique across the visible definition set plus the builtins, making the prelude callable bare from everywhere; on a collision between modules, `module::def` is required, and qualifying a unique name is an error. Same-module-only bare resolution was rejected because the prelude would need an always-bare special case (a second way); Rust-style optional qualification was rejected as before (two spellings for every unique name). Private definitions are visible only within their own module and are never qualifiable.
+
+### 3.16 Typed holes
+
+Adopted 2026-08-23 (survey §4.3, after Tacit/Thermite — the Idris hole workflow §12 already cites, confirmed to work for agents specifically). `?name` is an expression of any type; a definition containing holes **checks**, with the checker reporting each hole's goal type, so the agent can lower a hard function outside-in — structure first, holes for the hard cases, green types at every step — and a failed attempt at hole 3 does not discard holes 1–2. A blocked lowering pauses in a principled `partial(holes: n)` lock state instead of all-or-nothing failure, and `ask_human` can point at a specific hole and its goal type rather than a prose description of being stuck.
+
+The rule that keeps the trust model intact: **a definition with holes can never be `tested`, `accepted`, or built into a release target** — holes are a lowering-time state, visible in the lock, never in an artifact; `run`/`test` refuse them. Grammar in soil-syntax-spec §3.3/§5.11; soil0 CLI contract v1.1.
+
+### 3.17 Literal provenance
+
+Adopted 2026-08-23 (survey §6.2, after Vera's `<DB>` literal-provenance rule that makes SQL injection a check error). `Literal a` is a provenance fact tracked *syntactically* by the checker, not the solver: string literals carry it, concatenation of literals preserves it, nothing else does. Prelude and batteries signatures for injection-shaped boundaries demand it — `proc_run` command text, SQL query text, a future `Py::eval` — with runtime values passed separately as parameters. The escape hatch is a **human-only** `trust_literal` cast, listed in the manifest with the other escape hatches. This turns the most likely *dangerous* agent error in glue code into a checker error at zero solver cost. Enforcement lands when the first boundary needing it does (plan 06: `Proc`/`Py`); batteries signatures are written provenance-aware from the start.
+
+Rationale: "there is only one way to do something" (§3.1). The Rust rule (bare when unique, qualified always allowed) was rejected because it leaves every unique constructor with two legal spellings; always-qualifying was rejected as a permanent verbosity tax on the code humans read most; `Type.Ctor` was rejected because `.` is reserved for field access (§3.7). Cost accepted: adding a colliding type to a definition's context changes the required spelling in that definition — a visible change that content addressing surfaces as an ordinary re-check. (Surfaced by impl plan 02; resolved 2026-08-22. Grammar in soil-syntax-spec §3.3–§3.4, static rule §5.9, tr-grammar §2.3.)
 
 ---
 
@@ -294,6 +314,7 @@ Helpers live at the Soil layer in two forms:
 - **There is no `calls` annotation.** The original "function application annotation" idea is fully subsumed by effect rows and capabilities: a function without a `Net` argument cannot reach the network regardless of what it calls. Call edges are tracked by the lock for the graph view but are not human-written.
 - **Values:** JSON, with a block drag-and-drop UI in the IDE for constructing them. Every Trellis type is round-trippable through JSON; this is also the derivation mechanism for `show`/`eq` (§3.7). **Sum types are internally tagged** (`{"tag": "Ok", "value": …}`; nullary variants `{"tag": "None"}`): one uniform shape for every variant, self-describing for hosts and generic tooling. The verbosity is accepted because the IDE's widgets, not humans, write and read these values. Decoding is always type-directed; `show` output is canonical (declaration-order fields, comparator-order maps, shortest round-trip floats) so expect tests compare on the string. Full encoding table in the grammar prototype.
 - **Type definitions** are definitions: prose plus a shape (or agent-inferred shape) plus optional invariants expressed as refinements on aliases, which are checked as properties every constructor must preserve. Confirmed; whether invariants are checked on every constructor call or only proven at definition sites is an open detail (§9).
+- **Decision blocks** (adopted 2026-08-23, survey §8.2, after Aver): `decisions` blocks in `_module.tr` and a project-level `_project.tr` record structured chosen/rejected entries ("all timestamps UTC", "comparator maps keyed by user id"), hashed with the spec and **included in every context bundle in scope** — closing a real gap in the §1.4 tenet, where project-wide rules lived nowhere hashable and each lowering either rediscovered or violated them. The interactive lowering UI writes rule-shaped answers back to decisions rather than into one function's prose; the IDE can query them. Grammar in tr-grammar §5.2.
 - **The `.tr` grammar** is prototyped in `docs/tr-grammar.md` with worked examples in `examples/`. The reserved block languages are `soil-sig`, `requires`, `ensures`, `test`, `property`, `cram`, `reference`, `allow`, `soil-type`, `invariant`, `exports`; fenced blocks in any other language are prose. Finalization into `docs/` is pending (§11).
 
 ### 4.4 Module structure
@@ -321,6 +342,9 @@ Tiers, expressed as a lattice the manifest can describe:
 - **Harvested tests remain optional and strictly better** when the foreign library has examples or a test suite worth translating. Trust level `harvested` vs `contract` is recorded in the lock.
 - **Refined bindings need one real test per refinement.** A refinement on a binding (e.g. `{p | valid_regex p} -> total Regex`) does work for downstream proofs that contract tests do not exercise, so each refinement requires one human-written counterexample. Most bindings carry no refinements.
 - **`io` testing:** fake capabilities (§3.5) are the primary mode. Cram tests against real side effects are the fallback for the individual user and for the FFI boundary, where fakes stop being possible. A cram transcript runs in a fresh temp dir with `with file` fixtures and may invoke built binary targets or `trellis call <def> <json-args>` (any `io` definition, real `World`-derived capabilities, canonical JSON out) — the real-mode escape for non-`main` functions. Cram never runs inside the lowering sandbox (§4.6). The lock tags a function's `io` tests with their mode so additional modes can be added later without a format change.
+- **Test strength is measured, not assumed** (adopted 2026-08-23, survey §3.1, after Thermite/Vow): a post-v1 `trellis mutants` daemon job mutates the generated Soil (swapped comparisons, off-by-one constants, dropped match arms) and reports **surviving mutants** in the lock as a test-strength score. This is how tests are audited *without reading implementations* — exactly the position Trellis puts the human in. The IDE shows each survivor as a concrete "your tests don't catch this" example, one click from becoming an expect test; `soil.toml` CI policy may require a mutation score for `accepted`. The lock schema reserves the fields now.
+- **The contradiction pre-flight gains vacuity probes** (adopted 2026-08-23, survey §3.2): a precondition no input satisfies, a postcondition implied by `true`, and an expect-test set that never exercises a declared variant are each flagged before tokens are spent — closing the failure mode of an agent satisfying "write a refinement" with a claim that constrains nothing.
+- **The test budget gains a hostile tier** (adopted 2026-08-23, survey §3.3, after Aver): property tests biased to boundary values (empty lists, integer extremes, NaN, the largest value a refinement permits) and *failing* capability fakes — an `Fs` whose reads error mid-stream, a `Clock` that jumps backward. Because capabilities are explicit arguments, hostile fakes are ordinary prelude values (plan 04); no mechanism needed.
 
 ### 4.6 Lowering
 
@@ -348,9 +372,13 @@ Tiers, expressed as a lattice the manifest can describe:
 
 **Agent questions before lowering:** the agent may raise an ambiguity as a blocking state ("should `parse` accept trailing whitespace?"). The human's answer is written back into the prose. Ambiguity becomes spec improvement rather than silent guessing. Implied by the interactive UI decision; not separately confirmed.
 
-**Errors for the agent as a first-class audience:** the LSP has two output modes, human and agent; the agent mode is structured (JSON) with concrete counterexample, violated spec clause, failing test, and a suggested repair class.
+**Errors for the agent as a first-class audience:** the LSP has two output modes, human and agent; the agent mode is structured (JSON) with concrete counterexample, violated spec clause, failing test, and a suggested repair class. **Codes and repair classes are a drift-gated registry** (adopted 2026-08-23, survey §4.1, after Vera/Zero): every diagnostic carries a stable code from a registry living in the toolchain source, each code mapping to a typed repair class the agent acts on mechanically (`add-decreases`, `widen-match`, `insert-guard`, `export-type-or-mark-abstract`, …) plus a `spec_ref` into the sectioned Soil spec, and CI fails if registry, docs, and emitted diagnostics disagree. The soil0 CLI contract's error-code registry is the first instance; the repair-class layer is the daemon's (plan 03).
 
-**Interactive lowering UI:** the user interacts with lowering errors and reports through a prompt or UI. Rule: anything the human says to the lowerer that changes the outcome must be persisted to the `.tr` file, or the lowerer refuses to act on it.
+**The context-bundle assembler is a budgeted, prioritized packer** (adopted 2026-08-23, survey §4.4, after Tacit/Aver): `trellis context <def> --budget <n>` packs spec > tests > callee signatures > nearest corpus examples > module prose, with the budget per model recorded in the provider config — resolving the bundle-sizing question by making the budget explicit and the priority fixed. The Soil spec itself is written in pinned, individually addressable sections that `spec_ref` points into and a daemon tool serves; the whole spec is never shipped blind.
+
+**The lowering skill is generated, never hand-maintained** (adopted 2026-08-23, survey §4.5, after Vow's compiler-emitted skill): `trellis skill` assembles the lowering skill from the compiler's own registries — error codes, repair classes, the effect lattice, derivation strategies, primitive types — plus the pinned prelude corpus, and CI fails if a committed copy drifts from the toolchain that emitted it. The skill is a build artifact versioned with the toolchain, which also serves non-Claude harnesses with one bundle.
+
+**Interactive lowering UI:** the user interacts with lowering errors and reports through a prompt or UI. Rule: anything the human says to the lowerer that changes the outcome must be persisted to the `.tr` file, or the lowerer refuses to act on it. An answer that is really a project rule goes into a `decisions` block (§4.3), not into one function's prose.
 
 **Model selection:** user-customizable, with "auto" functionality that chooses when no model is selected. Auto keys on spec size, effect row, presence of refinements, and number of past lowering attempts; escalates on retry. A per-project cost ceiling is planned because auto-with-escalation is exactly the setting where one pathological function burns a budget. All of this is tooling and ships minimal for v1 (one model, fixed retry count).
 
@@ -365,6 +393,7 @@ Tiers, expressed as a lattice the manifest can describe:
 - **Checked in.** Agent output is not reproducible, so the Soil is the artifact and the agent is a code generator like `protoc`; regeneration is a deliberate step.
 - **Editable by humans.** People will do it anyway. The lock records `hand-edited` and skips re-lowering until the spec changes.
 - **Round-trip check:** handled by the spec rather than by diffing prose summaries. The checked type of the generated function must entail the spec type from the manifest (a mechanical subtyping/entailment check). Prose drift is handled separately via hashing (§6.2).
+- **Exactly one canonical text form** (adopted 2026-08-23, survey §5.1, after Vow/Tacit): the printer is a compiler pass with `parse → print → parse` idempotence as a conformance test, and the lowerer's `write_soil` canonicalizes on write — the agent never controls formatting, so every checked-in diff is semantic and `soil_hash` is meaningful. Rule pinned now; the formatting spec and `soil0 print` land as soil0 impl step 11, before the first hash ships (plan 03).
 
 ### 4.9 The daemon
 
@@ -408,6 +437,7 @@ Every definition is identified by the hash of its syntax tree with free variable
 - No name-based conflicts; renames are free.
 - Check results, test results, and lowering results are cached by hash.
 - Composes with Nix, which is also content-addressed.
+- **`soil_hash` is computed over the canonical text of the alpha-normalized AST** (adopted 2026-08-23, survey §5.2, after Tacit/Unison): local binders hash as indices with display names excluded, so renaming a local in a hand-edit or re-lowering never invalidates verification or caching. Definition-level names stay load-bearing (filename is identity, §4.3); local names are display metadata for hashing purposes. The identifier-leakage research (Wang et al.) also motivates a later misleading-name lint (§10) — wrong names damage the next agent to read the code — but not nameless surface syntax (§12).
 
 Because cross-definition mutual recursion is forbidden (§3.8), the definition graph is a tree for functions. Recursive types need a combined cycle hash.
 
@@ -436,6 +466,12 @@ Refinement types are modular: each function is checked against its own signature
 
 **Fallback on proof failure:** the function is demoted to its base ML type (refinements erased from the checker's view), marked `unverified`, and tests remain required. Callers relying on the refinement are checked against the weaker type. Demotion is explicit and local; the agent never silently widens a signature. The IDE shows the unproven chain. This is effectively gradual refinement typing (Lehmann & Tanter).
 
+**The solver outcome is three-way, and a counterexample is a failure, never a downgrade** (adopted 2026-08-23, survey §2.2, after Thermite): *unsat* proves the clause; *unknown or timeout* demotes it — the only demotion path; *sat with a model* **fails the lowering**, because the checker has found a concrete input on which the claim is wrong and demoting would ship code known-wrong on a known input. The counterexample is handed to the agent as a structured repair input (it is a failing test the solver wrote) and offered to the human as a one-click expect test — the solver just found an input the human's tests missed, strengthening the trust root. `runtime` status therefore means "undecided", never "known wrong".
+
+**Assurance is recorded per clause, not per definition** (adopted 2026-08-23, survey §2.1): each refinement clause carries `proven` (SMT, erased in release) | `runtime` (demoted, guard active) | `trusted` (human escape hatch) in the lock (§6.3), so a definition with three clauses can honestly be two-proven-one-runtime instead of a single flag. Module and project badges aggregate by **minimum over exported definitions' clauses** (§7.1), so one runtime-only boundary is never hidden behind a proof elsewhere.
+
+**Violations carry blame** (adopted 2026-08-23, survey §2.3, after Vow): a `requires` violation faults the **caller**, an `ensures`/`invariant` violation faults the **callee**, as a structured field in every runtime check and `SoilError` (§3.11's debug payload). Blame tells the daemon which definition to queue for re-lowering and which lock entry to mark suspect — the units of repair are definitions with separate specs, so routing the repair automatically is worth a field in every guard, and retrofitting it into emitted guards later would be tedious. Lands with the runtime guards (plan 05).
+
 Blast radius is kept small by design: the checker is for extra safety; tests are what correctness is based on.
 
 ---
@@ -452,6 +488,7 @@ The IDE experience is the primary goal; the first milestone is a tool the author
 - **Fix mode:** a debug-mode run produces a trace, flame graph, and proposed test cases; the IDE supports turning any of these into tests.
 - **Git:** the IDE never commits on its own. At accept, pin, and rename it suggests a commit with a message; one click to commit, one to decline.
 - **Lints:** definition-size and split-suggestion lints (e.g. a 400-line lowering for a one-paragraph spec) come from the Soil checker and surface in the IDE as suggestions, never blocking.
+- **Badges aggregate by minimum** (adopted 2026-08-23, survey §2.1): a module or project badge is the minimum over its exported definitions' per-clause assurance and status — a green project means every export's every clause is at least runtime-checked and every export is `accepted`. One aggregation rule; prevents the dashboard lie.
 - **Status:** the lock is ugly and never read directly; the IDE renders it. Code review is supported by the IDE rendering "specs changed, tests changed, N re-lowered, M newly accepted."
 - **Telemetry:** the lowerer tracks tokens, cost, retries, and provider per lowering from day one; this is what later makes automatic model selection possible.
 - **Build targets:** `trellis build` builds whatever `soil.toml` specifies: `binary`, `py_module`, `shared_lib`, `jvm_jar`, etc. One tool, one flag surface.
@@ -491,6 +528,7 @@ Every definition is three files; the module header and private helpers are the t
 
 - **Declare dependencies in TOML; Trellis compiles it to a Nix build script.** Nix is the right model (hermetic, content-addressed) but adopting it wholesale couples users to its ecosystem. The approach mirrors `dream2nix`, `crate2nix`, `poetry2nix`; Trellis is the polyglot roof over them.
 - Generate `flake.lock`-style pinned inputs.
+- **Toolchain pin, refuse-on-mismatch** (adopted 2026-08-23, survey §5.3, after Tacit): `soil.toml` pins the compiler, the skill bundle, and the prelude/batteries hashes, and the daemon **refuses to lower or verify** under a mismatched toolchain with a structured diagnostic, rather than silently writing lock entries that claim more than they should. Upgrades are explicit `trellis toolchain update` events — the natural trigger for the §7.1 re-verification sweep.
 - **No "escape to raw Nix" field** in the TOML, or every project will use it and the tool becomes Nix with extra steps.
 - A `dev` mode that shells out to native toolchains without Nix is planned for contributor onboarding.
 - **Foreign file locking:** Nix hashes lock *provenance* (which bytes); Trellis's lock records *interface* (which shape) via symbol hashes of `.pyi`, `.d.ts`, or C header declarations. v1 accepts Nix's coarse invalidation (any upstream commit invalidates all bindings); the lock format is designed so finer symbol-level invalidation slots in later.
@@ -539,6 +577,14 @@ Every definition is three files; the module header and private helpers are the t
 | `trellis derive` from an existing codebase | Not built | Second user / team adoption |
 | Concurrent lowerings | Strictly serial with a queue | If serial throughput hurts |
 | Separate signature-inference step before lowering | Not allowed; disciplined order enforced | If waiting on callees proves too annoying |
+| seccomp/Landlock policy emitted from the capability set; `trellis run --deny` | Design adopted 2026-08-23 (survey §6.1); not built | With `trellis build` (plan 06+) — "the sandbox is derived from the types" |
+| Per-resource capability confinement (scoped `Fs` via Landlock paths) | Not built; kind-level caveat documented | After the kind-level sandbox |
+| TrellisBench (spec+tests problems through the real daemon, per release, published results) | Adopted 2026-08-23 (survey §8.1); not built | Before the prelude grows (plan 04 kickoff) — corpus changes must be measured |
+| Speculative proof-delta daemon tools (`speculative_check`, spec-edit blast radius) | Adopted 2026-08-23 (survey §4.2); not built | Once incremental checking is warm (plan 03+) |
+| Co-process Python isolation (`coproc` per-binding mode) | JSON-marshalling constraint adopted (§3.11); mode not built | Post-v1; lowering sandbox runs Python `coproc` first |
+| Mutation-testing job (`trellis mutants`) | Lock fields reserved 2026-08-23 (§4.5) | Post-v1 daemon job |
+| Bounded model checking as an assurance rung between `proven` and `runtime` | Not adopted (§12) | If SMT coverage proves insufficient |
+| Misleading-name lint on Soil binders | Not built (§6.1) | After soilc |
 
 ---
 
@@ -577,3 +623,5 @@ The build order follows the bootstrap plan (`docs/bootstrap-plan.md`): the compi
 - **dream2nix / crate2nix / poetry2nix:** per-ecosystem TOML-to-Nix precedent.
 - **Buck2:** polyglot build alternative.
 - **Inform 7, AppleScript, COBOL, Wolfram:** history of natural-language programming. The consistent lesson: prose as *syntax* fails; prose as *spec alongside formal structure* works. Trellis is on the right side of that line.
+
+**The 2026-08 agent-language survey** (agentlanguages.dev, 38 entries; adoption record in `docs/plans/extra/agentlanguages-adoptions.md`) supplied every decision marked "adopted 2026-08-23" above — chiefly from Thermite (assurance ladder, counterexample rule, holes, seccomp), Vera (drift-gated codes, proof-delta LSP, literal provenance), Vow (blame, generated skill, canonical printer, mutation testing), Tacit (canonical form, toolchain pin, sectioned primer), and Aver (decision blocks, hostile profiles, budgeted context). Deliberately declined, with reasons: **De Bruijn surface syntax** (humans review this code and filename-identity depends on names; alpha-normalized hashing captures the benefit); **AST-as-source / JSON programs** (canonical *text* keeps greppability); **mandatory contracts with no opt-out** (the one-sentence-one-test minimal definition is the point — the human's attention is the scarce resource in disciplined vibing); **bounded model checking as the primary engine** (verification-artifact bounds leak into contracts; at most a future assurance rung); **first-person compiler personas** (not the product).

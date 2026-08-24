@@ -1,0 +1,2 @@
+f : Point -> I64
+f p = p.z

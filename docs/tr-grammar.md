@@ -11,14 +11,15 @@ info string begins with a **reserved word**. Everything else — including
 fenced blocks in unreserved languages such as `python` or `text` — is prose:
 it is hashed under `prose_hash` and never parsed.
 
-There are three file kinds, distinguished by content, with filename as
+There are four file kinds, distinguished by content, with filename as
 identity (design §4.3):
 
 | Kind | Filename | Defines |
 |---|---|---|
 | Function | `<name>.tr` | one function; name = filename stem verbatim |
 | Type | `<name>.tr` | one type; PascalCase name declared in frontmatter, filename is its snake_case form |
-| Module header | `_module.tr` | module prose and the export list |
+| Module header | `_module.tr` | module prose, the export list, module decisions |
+| Project header | `_project.tr` | project prose and project-wide decisions (at the Soil root; added 2026-08-23, design §4.3) |
 
 Filenames are lowercase snake_case for every kind, so identity survives
 case-insensitive filesystems.
@@ -26,9 +27,10 @@ case-insensitive filesystems.
 Every `.tr` file begins with YAML frontmatter. `name` is required and is the
 definition's canonical name: a function's equals the filename stem; a type's
 is PascalCase and the filename is its snake_case form; a module's equals its
-directory name. There is no `kind` field — kind is inferred (`_module.tr` by
-filename; a `soil-type` block makes a type file; otherwise the file is a
-function).
+directory name; a project header's equals the Soil root directory's name.
+There is no `kind` field — kind is inferred (`_module.tr` and
+`_project.tr` by filename; a `soil-type` block makes a type file;
+otherwise the file is a function).
 
 `tags` is optional: a list drawn from a per-project vocabulary declared in a
 `[tags]` table in `soil.toml`; an undeclared tag is an error. Tags are
@@ -59,6 +61,7 @@ tags: [parser]
 | `soil-type` | type | = 1 | the type's shape |
 | `invariant` | type | ≤ 1 | type invariants |
 | `exports` | module | = 1 | export list |
+| `decisions` | module, project | ≤ 1 | structured chosen/rejected decisions (design §4.3, adopted 2026-08-23) |
 
 ### Mapping to the three-part hash (design §6.2)
 
@@ -66,7 +69,10 @@ tags: [parser]
   `soil-type`, `invariant`, `exports`, `allow`.
 - `test_hash`: `test`, `property`, `cram`, `reference` (the reference is an
   oracle; changing it re-runs differential tests, not the lowering).
-- `prose_hash`: everything else in the file, including `tags`.
+- `prose_hash`: everything else in the file, including `tags` and
+  `decisions` (a changed decision flags lowerings in scope
+  `review-suggested` rather than invalidating them — whether that is
+  strong enough is an open question, §9).
 
 ---
 
@@ -98,17 +104,33 @@ neg        ::= [ "not" ] atom
 atom       ::= comparison | is-test | call | "(" predicate ")"
 comparison ::= expr relop expr
 relop      ::= "==" | "!=" | "<" | "<=" | ">" | ">="
-is-test    ::= expr "is" Ctor [ "(" ident ")" ]        (binds the payload)
-expr       ::= literal | path | call
-             | expr ("+" | "-" | "*") expr | "(" expr ")"
+is-test    ::= expr "is" [ TypeName "::" ] Ctor [ "(" ident ")" ]
+                                                       (binds the payload)
+expr       ::= mul { ("+" | "-") mul }
+mul        ::= app { "*" app }
+app        ::= call | aexpr
+call       ::= ident aexpr { aexpr }                   (juxtaposition; the head is a bare ident)
+aexpr      ::= literal | path | "(" expr ")"
 path       ::= ident { "." ident }                     (record field access)
-call       ::= ident "(" [ expr { "," expr } ] ")"
 literal    ::= JSON literal
 ```
+
+Calls are juxtaposed exactly as in Soil terms — `len v > 0`, not
+`len(v) > 0` — so there is one application spelling everywhere, by the
+same argument that gave the connectives one spelling (resolved
+2026-08-22; the original parenthesized-comma call form was dropped, and
+`examples/csvstats/median.soil` is normative). Consequently `is` and
+`implies` are reserved words within predicates and cannot name paths
+there.
 
 Names in scope: the signature's named parameters; `result` (in `ensures`
 only); `self` (in `invariant` only); `forall` binders (in `property` only);
 and `total` definitions visible to the file.
+
+Constructor references in `is` tests follow the exactly-one-spelling rule
+(soil-syntax-spec §5.9, design §3.15): bare when the variant name is
+unique among the types in scope, `Type::Ctor` required when it collides —
+qualifying a unique constructor is an error.
 
 ---
 
@@ -258,7 +280,7 @@ wherever a value is built without it: JSON decode, `py_to_soil`, host stubs.
 `ignored` thus means "excluded from derivation, reconstructible on demand":
 
 ```
-type Doc = { text : Utf8, cached_word_count : U64 ignored = word_count(text) }
+type Doc = { text : Utf8, cached_word_count : U64 ignored = word_count text }
 ```
 
 ### 4.2 `invariant`
@@ -285,6 +307,33 @@ An exact list of definitions (design §4.4). If an exported signature
 references an unexported type, the two permitted repairs are exporting it or
 marking it `abstract` here (design §3.14).
 
+### 5.2 `decisions`
+
+Structured project or module rules — chosen, rejected, rationale —
+queryable by the IDE and **included in every context bundle in scope**
+(the module's lowerings for `_module.tr`, every lowering for
+`_project.tr`), closing the tenet gap where such rules lived only in an
+agent's context (design §4.3, adopted 2026-08-23 after Aver).
+
+```
+block    ::= entry { entry }
+entry    ::= label ":" text                    (the decision, one line)
+             { "rejected:" text }              (zero or more alternatives, with reasons)
+label    ::= free text not containing ":"
+```
+
+Labels are addressable: the interactive lowering UI's write-back targets
+them (an answer that is a project rule lands here, design §4.6), and the
+IDE answers "why Result here?" by label. Example:
+
+````
+```decisions
+timestamps: all timestamps are UTC seconds (I64)
+  rejected: local time (DST bugs); F64 epoch (precision loss)
+errors: Result everywhere; panic only via refinement-checked prelude calls
+```
+````
+
 ---
 
 ## 6. Validity rules
@@ -300,12 +349,15 @@ marking it `abstract` here (design §3.14).
    least one prose paragraph and exactly one `soil-type` block. No test
    blocks.
 4. Module header: `name` equals the containing directory's name; exactly one
-   `exports` block.
-5. Block multiplicities per the table in §1; `test`/`property`/`cram` names
+   `exports` block; at most one `decisions` block.
+5. Project header: lives at the Soil root beside `soil.toml`; `name`
+   equals the root directory's name; no `exports`; at most one
+   `decisions` block.
+6. Block multiplicities per the table in §1; `test`/`property`/`cram` names
    unique within a file.
-6. The names declared in `soil-sig` and `soil-type`, when present, must
+7. The names declared in `soil-sig` and `soil-type`, when present, must
    equal the frontmatter `name`. Renaming is refactor-rename (design §4.3).
-7. Predicates may reference parameters only via a named-parameter `soil-sig`.
+8. Predicates may reference parameters only via a named-parameter `soil-sig`.
 
 ---
 
@@ -371,3 +423,9 @@ All questions raised by the first draft — type-name casing (frontmatter,
 range, §7), generator strategy (constrained, §3.4), the `cram` grammar
 (§3.5), and property-only files (valid, §6) — have been resolved and folded
 into the sections above.
+
+Newly open (2026-08-23, with the `decisions` adoption): decisions hash
+under `prose_hash`, so a changed decision only flags lowerings in scope
+as `review-suggested` (§1) — but a decision is closer to a spec than to
+prose, and forcing re-lowering (formal-hash semantics) may be the honest
+rule. Revisit when the daemon's bundle packer exists (plan 03).

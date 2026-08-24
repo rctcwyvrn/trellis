@@ -340,7 +340,7 @@ loading a descriptor list resolves names in two passes (declare all,
 then define all), which handles recursion for free.
 
 This format is the seed of plan 02's `--types env.json` contract; plan 02
-freezes it in `docs/soil0-cli.md`, so it should be reviewed with that in
+freezes it in `docs/contracts/soil0-cli.md`, so it should be reviewed with that in
 mind, but it is *not* frozen by this plan.
 
 ### Step 8 — the C ABI (`capi.rs`) and the demo
@@ -495,7 +495,7 @@ point.
     builder API): one descriptor format across fixtures, `env.json`, and
     embedding.
 11. **Descriptor JSON is reviewable but not frozen here**; plan 02
-    freezes it inside `docs/soil0-cli.md` as the `--types` contract.
+    freezes it inside `docs/contracts/soil0-cli.md` as the `--types` contract.
 12. **All dev dependencies are managed through a repo-root `shell.nix`**
     (§2): it is the single pin for the Rust toolchain (no
     `rust-toolchain.toml`) and provides every tool (`cbindgen`, the C

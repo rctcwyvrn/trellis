@@ -54,6 +54,21 @@ that makes the lowering loop pleasant.
    derived), REPL pane with REPL-to-expect-test promotion, accept/pin
    buttons with suggested git commits (never auto-commit).
 
+## Adoptions (2026-08-23, agentlanguages survey)
+
+- **Literal provenance enforced** (design §3.17): the checker's
+  `Literal` fact ships with the first boundary that needs it — `Proc`
+  command text, `Py` eval, SQL batteries — and every batteries signature
+  is written provenance-aware. `trust_literal` is a human-only escape
+  hatch in the manifest.
+- **Capability sandbox** (design §10, deferred here): `trellis build`
+  emits a seccomp/Landlock policy from `main`'s transitive capability
+  set; `trellis run --deny net` shrinks `World`. Kind-level, not
+  per-resource (documented caveat).
+- **JSON marshalling constraint** (design §3.11): nothing
+  non-serializable crosses the FFI boundary, keeping the deferred
+  co-process Python mode implementable as a deployment mode.
+
 ## Non-goals
 
 `py_module`/Python-hosts-Soil, `.pyi` stub generation, Node, TOML→Nix

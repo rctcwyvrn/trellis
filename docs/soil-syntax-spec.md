@@ -6,7 +6,9 @@ terminator, parenthesize non-tail nested matches), word connectives
 (`and`/`or`/`not`) shared with the predicate language, shadowing forbidden,
 `::` for namespaces with `.` reserved for field access, `..` required in
 partial record patterns, parameterless `let` bindings (functions are
-explicit lambdas). Semantics (typing, effect, and refinement rules) arrive
+explicit lambdas), and (2026-08-22, surfaced by impl plan 02) constructor
+qualification `Type::Ctor` with the exactly-one-spelling rule (§5.9).
+Semantics (typing, effect, and refinement rules) arrive
 with the Soil core milestone (design §11); this document is the parser's
 contract.*
 
@@ -49,18 +51,38 @@ connective; see §3.3 for the disambiguation rule.
 ==  !=  <  <=  >  >=  +  -  *  /  %  _
 ```
 
+`?` appears only as the head of a typed hole: `?` immediately followed by
+an `ident` lexes as one hole token (`?rest`); a bare `?` is an error
+(§5.11, added 2026-08-23).
+
 ### Literals
 
-- Integer: `[0-9][0-9_]*`, default type `I64`. Other widths by annotation:
-  `(42 : U32)`. No suffixes.
-- Float: digits `.` digits, optional exponent (`1.5e3`), default `F64`.
+- Integer: `[0-9][0-9_]*`, default type `I64`. Other widths by annotation
+  (`(42 : U32)`) or by context — an integer literal adopts the type
+  inference demands ("as in Rust", design §3.6), so `b == 0` checks with
+  `b : U64`; the default applies only when unconstrained. No suffixes. A
+  literal is range-checked against its resolved width at check time
+  (impl plan 02 §8.14, amended 2026-08-23 — the fully-fixed-at-lex
+  reading would have broken the normative `gcd` example); since negation
+  is an operator, `I64::MIN` is not writable as a literal (the C/Rust
+  wart, accepted — a prelude constant covers it).
+- Float: digits `.` digits, with an optional exponent — lowercase `e`,
+  an optional `-` (no `+`, no `E`), digits — as in `1.5e3`, `1.5e-3`.
+  Default type `F64`. Underscores are permitted in every digit run of
+  numeric literals and are not part of the value. Lexing extends a
+  numeric literal only when what follows can continue it: `1..2` lexes
+  as `1` `..` `2`, and `1.5e` as `1.5` followed by the identifier `e`.
+  (Edges resolved 2026-08-22 with the soil0 lexer.)
 - String: `"…"`, default `Utf8`. The escape set is exactly `\"`, `\\`,
   `\n`, `\r`, `\t`, and `\u{hex}` with one to six hex digits denoting a
   Unicode scalar value (surrogates U+D800–U+DFFF and values above U+10FFFF
   are errors — a `Utf8` value can never hold them). Any other character
   after `\` is an error; there are no octal/hex byte escapes (`Bytes` are
   built by prelude functions, not literals) and no line-continuation
-  escapes.
+  escapes. Raw characters are unrestricted: any character other than `"`
+  and `\` — including newlines and non-ASCII — stands for itself, so
+  strings may span lines; a string is unterminated only at end of file.
+  (Resolved 2026-08-22 with the soil0 lexer.)
 - No character literals; no `Bytes` literals (construct via prelude
   functions).
 - Negation is the unary operator, not part of the literal.
@@ -152,10 +174,15 @@ atom      ::= literal
             | qualified
             | TypeName                               (constructor)
             | record
+            | hole
             | "(" expr [ ":" type ] ")"
 
+hole      ::= "?" ident                              (typed hole, §5.11; design §3.16)
+
 path      ::= (ident | private-ident) { "." ident }  (variable + field projections)
-qualified ::= (ident | TypeName) "::" ident          (module::def or Type::derived)
+qualified ::= ident "::" ident                       (module::def)
+            | TypeName "::" ident                    (Type::derived)
+            | TypeName "::" TypeName                 (Type::Ctor — §5.9)
 record    ::= "{" [ path "with" ] field { "," field } "}"
 field     ::= ident "=" expr
 ```
@@ -174,7 +201,9 @@ field     ::= ident "=" expr
   innermost open `match`. A nested match in non-tail position must be
   parenthesized (the OCaml rule, chosen deliberately).
 - Constructor application is ordinary application with a `TypeName` head:
-  `Ok bytes`, `BadCell { index = 1, text = "x" }`, nullary `None`.
+  `Ok bytes`, `BadCell { index = 1, text = "x" }`, nullary `None` — or a
+  qualified head `Result::Ok bytes` exactly when the variant name
+  collides in scope (§5.9).
 - Record update bases are paths, not arbitrary expressions:
   `{ r with cells = ys }`.
 - `(e : type)` is a local annotation, the only way to give a literal a
@@ -184,10 +213,11 @@ field     ::= ident "=" expr
 
 ```
 pattern    ::= "_" | ident | literal
-             | TypeName [ pat-atom ]
+             | ctor-name [ pat-atom ]
              | record-pat
              | "(" pattern ")"
-pat-atom   ::= "_" | ident | literal | TypeName | record-pat | "(" pattern ")"
+pat-atom   ::= "_" | ident | literal | ctor-name | record-pat | "(" pattern ")"
+ctor-name  ::= [ TypeName "::" ] TypeName            (qualification per §5.9)
 record-pat ::= "{" fieldpat { "," fieldpat } [ "," ".." ] "}"
 fieldpat   ::= ident [ "=" pattern ]                 (bare ident = punning)
 ```
@@ -253,6 +283,30 @@ arithmetic tiers inserted below the comparisons and `implies` absent.
    `decreases` measure; failing both, its row acquires `div` (design §3.4).
 8. **Derived functions** are reached by qualification: `Row::eq`,
    `Row::show`, `Row::compare`, `Row::hash` (design §3.7).
+9. **Constructor resolution has exactly one legal spelling.** A bare
+   constructor resolves iff its variant name is unique among the sum
+   types in scope, and the bare form is then the *only* legal form;
+   when two types in scope share the variant name, the qualified
+   `Type::Ctor` form is required. Qualifying a unique constructor is an
+   error. One spelling per context (design §3.15); the error on a
+   collision names the candidate types. The rule applies identically in
+   expressions, patterns, and the predicate language's `is` tests
+   (tr-grammar §2.3).
+10. **Definition names follow the same exactly-one-spelling rule**
+    (resolved 2026-08-22, design §3.15). A bare name resolves iff it is
+    unique across the visible definition set (the manifest, design
+    §6.1) plus the builtins — so the prelude is called bare — and bare
+    is then the only legal form; when two modules define the name, the
+    qualified `module::def` form is required, and qualifying a unique
+    name is an error. Private definitions are visible only within
+    their own module and cannot be qualified (`::` takes a plain
+    `ident` on the right; private-idents never cross modules).
+11. **Typed holes** (adopted 2026-08-23, design §3.16). `?name` is an
+    expression of any type; hole names are unique within a definition
+    (a repeated hole name is an error). A definition containing holes
+    *checks*, with each hole's goal type reported; it is `partial` —
+    never testable, never `accepted`, never built, and `run`/`test`
+    refuse it (`unfilled-hole`). Holes are a lowering-time state.
 
 ## 6. Interaction with the value encoding
 
@@ -298,3 +352,54 @@ partial record patterns require `..` (§3.4); the term layer uses the word
 connectives, unifying with the predicate language (§1, §3.3); the string
 escape set is fixed and scalar-value-only (§1); `let` bindings are
 parameterless and functions are explicit lambdas (§3.3).
+
+Constructor-name ambiguity, surfaced by impl plan 02 (its §9.1), was
+resolved 2026-08-22: `Type::Ctor` qualification with the
+exactly-one-spelling rule (§3.3, §3.4, §5.9); design §3.15 records the
+rationale and the rejected alternatives.
+
+**Canonical text form**: adopted 2026-08-23 and specified in §9 below
+(soil0 impl step 11); `soil_hash` is computed over the canonical text of
+the alpha-normalized AST (design §6.1).
+
+## 9. Canonical form
+
+*Added 2026-08-23 (impl plan 02 step 11; design §4.8). Soil has exactly
+one printed form per AST: the printer is a compiler pass, `soil0 print`
+emits it, `parse → print` is a fixpoint, and the lowerer's `write_soil`
+canonicalizes — the agent never controls formatting. Layout is
+**structural and width-independent**: no rule consults line length. The
+checked-in examples are the style oracle — printing them is
+byte-identity, which is a conformance test.*
+
+- **Definitions**: the signature on one line (`name : type`); the
+  `decreases` line; the equation head `name p1 … =` with the body inline
+  on the same line when it is not a block, else on the next line at
+  indent 1. Definitions in `_private.soil` are separated by one blank
+  line. Indentation is two spaces per level; no trailing whitespace; the
+  file ends with one newline.
+- **Blocks** are `let`, `if`, and `match`; they lay out multi-line in
+  statement positions (definition bodies, let bodies, arm bodies,
+  `then`/`else` operands) and single-line inline everywhere else
+  (parenthesized argument positions).
+- **`let`** at indent *k*: `let [rec] name = value in` on one line when
+  the value is inline; the body follows at indent *k*. A block-valued or
+  block-bodied-lambda binding prints its header (`let f = fun a b ->`),
+  the value block at *k*+1, then `in` alone at *k*, then the body at
+  *k*.
+- **`if`** at *k*: `if cond`, `then X`, `else Y` on three lines at *k*;
+  a block operand moves to *k*+1 on the following line.
+- **`match`** at *k*: `match scrutinee with` then one `| pattern ->
+  body` line per arm at *k*; a block arm body moves to *k*+1.
+- **Parentheses are minimal by precedence** (§4): emitted only where
+  reparsing would change the tree — plus one style rule from the
+  examples: an applied type constructor after an effect row is
+  parenthesized (`io (Result Utf8 FsError)`).
+- **Spacing**: single spaces around binary operators, `:` in signatures
+  and refinements, `=` in bindings and record fields, and `|` in
+  refinements; `{ a = 1, b = 2 }` record spacing; `x.f` and `m::f`
+  unspaced; unary `-` attached.
+- **Literals**: integers and floats print their underscore-free source
+  text; strings escape exactly `\"`, `\\`, `\n`, `\r`, `\t`, and
+  lowercase `\u{…}` for remaining control characters, all other
+  characters raw.

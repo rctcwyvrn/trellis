@@ -1,0 +1,2 @@
+f : FsError -> Utf8
+f e = match e with | ReadFailed { path } -> path | _ -> "x"

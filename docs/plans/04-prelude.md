@@ -22,7 +22,13 @@ loop. Interpreted on `soil0`; small (a few thousand lines of Soil).
    fold, len, nth, append, reverse, sort_by…), `Utf8` (split, trim,
    parse-number…), `Bytes`, `BigInt`, `Map` with explicit comparator
    (the `Map.Make`-as-function idiom, design §3.6), JSON encode/decode
-   surface (thin wrappers over the runtime).
+   surface (thin wrappers over the runtime). The list *primitives*
+   (`list_len`, `list_nth`, `list_empty`, `list_append`, …) are
+   native-backed prelude definitions like the fakes — Soil has no list
+   literals or patterns, so nothing list-shaped is writable without them
+   — with names frozen in `docs/contracts/soil0-cli.md` (impl plan 02 §8.7,
+   resolved 2026-08-22); the rest of the `List` functions are written in
+   Soil on top of them.
 3. **Capabilities and fakes.** The capability types (`Fs`, `Net`, `Clock`,
    `Env`, `Proc`, `Rand`) as opaque types with their `World` derivations,
    and the fake constructors with pinned seeds/timestamps — signatures in
@@ -34,6 +40,26 @@ loop. Interpreted on `soil0`; small (a few thousand lines of Soil).
 5. **Trust and packaging.** The prelude is a Soil root with `soil.toml`;
    on completion, pin its package hash as trusted (design §5); all
    exported definitions `accepted` and `pinned`.
+6. **Kernel reconciliation** (deferred here from the soil0 CLI review,
+   2026-08-22). `docs/contracts/soil0-cli.md` §6.1 and §11 pin *provisional*
+   prelude surface: the kernel type shapes (`FsError`, `Utf8Error`,
+   `Path`), the builtin names and signatures (`clock_now : Clock -> io
+   I64` vs design §3.5's sketched `now : Clock -> io Time`; the list
+   primitives; `unit`; `T::compare : T -> T -> I64` returning −1/0/1
+   vs an `Ordering` sum; the fake constructors and their determinism
+   guarantees). The prelude's first `.tr` specs must adopt these
+   exactly, or revise them with the user and update the contract —
+   before the corpus teaches them.
+
+## Adoptions (2026-08-23, agentlanguages survey)
+
+- **Hostile capability fakes** (design §4.5): failing fakes — an `Fs`
+  that errors mid-stream, a backwards-jumping `Clock` — are ordinary
+  prelude values in the capability modules from the start.
+- **TrellisBench before the corpus grows** (design §10): even ~10
+  spec+tests problems wired through the real daemon per release, so
+  prelude/corpus changes are measured, not vibed. Stand it up at this
+  plan's kickoff.
 
 ## The totality problem (known, planned for)
 

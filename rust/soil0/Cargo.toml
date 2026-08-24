@@ -1,0 +1,15 @@
+[package]
+name = "soil0"
+version = "0.1.0"
+edition = "2021"
+description = "Minimal Soil: parser, static checks, tree-walking interpreter, CLI oracles"
+# Toolchain, not runtime: no GCC runtime exception (design §7.1).
+license = "GPL-3.0-or-later"
+
+[dependencies]
+soil-rt = { path = "../soil-rt" }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["float_roundtrip"] }
+
+[dev-dependencies]
+proptest = "1"

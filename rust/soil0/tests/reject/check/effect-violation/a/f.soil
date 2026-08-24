@@ -1,0 +1,2 @@
+f : Fs -> Path -> Result Bytes FsError
+f fs p = fs_read_bytes fs p

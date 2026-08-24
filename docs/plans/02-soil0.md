@@ -18,7 +18,7 @@ temptation to make it good; make it correct and small.
    oracle contract that `soilc`'s Trellis type definitions must later
    reproduce, so it follows the tr-grammar §7 value-encoding conventions
    (internally tagged sums, records) as if the AST were already Soil data.
-   Deliverable: `docs/soil0-cli.md`, reviewed before code.
+   Deliverable: `docs/contracts/soil0-cli.md`, reviewed before code.
 2. **Lexer + parser.** Hand-written recursive descent implementing
    `docs/soil-syntax-spec.md` exactly: the `and` binding/connective
    disambiguation, non-associative comparisons, parenthesized non-tail
@@ -33,7 +33,10 @@ temptation to make it good; make it correct and small.
    monomorphic types only). **No refinements** (parsed, retained in the
    AST, otherwise ignored). **No termination checking**: every
    self-recursive or `let rec` definition conservatively acquires `div`
-   (consequence handled in plan 04).
+   (consequence handled in plan 04) — recorded by `check` as an
+   unverified-termination *fact* rather than a hard error, so
+   `total`-signed examples still pass (the demotion philosophy;
+   soil0-cli §8.5, approved 2026-08-22).
 5. **Exhaustiveness + redundancy** checking for matches.
 6. **Interpreter.** Strict tree-walk over `soil-rt` values; closures;
    capability primitives implemented natively (`fs_read_bytes`, clock,
@@ -68,7 +71,7 @@ kind, `.tr` parsing (daemon's job, plan 03), Python FFI.
 
 ## Exit criteria
 
-- `docs/soil0-cli.md` exists and every command conforms to it.
+- `docs/contracts/soil0-cli.md` exists and every command conforms to it.
 - Both checked-in `.soil` examples check and run with correct results.
 - The rejection-test corpus covers every static rule in
   `docs/soil-syntax-spec.md` §5.
@@ -86,3 +89,28 @@ kind, `.tr` parsing (daemon's job, plan 03), Python FFI.
   descriptors in the schema's own encoding. Early tests hand-write it;
   the daemon generates it from `.tr` files later. `soil0` never parses
   `.tr`.
+
+## Implementation plan
+
+A detailed implementation guide exists at
+[`impls/02-soil0-impl.md`](impls/02-soil0-impl.md). It records a second
+round of decisions resolved 2026-08-22 — union-find inference with naive
+env-scan generalization, `Spanned` wrapper records in the AST JSON, a
+signature-only frozen contract for `soil0 infer` (with a non-contractual
+`--dump-ast`), and a machine-written `program.json` manifest referencing
+`env.json` — plus the module map, build order, the required contents of
+`docs/contracts/soil0-cli.md`, a set of micro-pins (its §8, approved 2026-08-22),
+and three spec gaps it surfaced, all resolved 2026-08-22 (its
+§9): constructor qualification `Type::Ctor` with the
+exactly-one-spelling rule (now soil-syntax-spec §5.9, design §3.15),
+the `fake_fs` example corrected to the canonical map encoding, and the
+list primitives adopted as native-backed prelude surface (plan 04).
+Step 1's deliverable, `docs/contracts/soil0-cli.md`, was reviewed and
+**frozen as contract v1 on 2026-08-22** (amended v1.1 on 2026-08-23:
+typed holes, `print`). **All implementation steps (2–11) completed
+2026-08-23**: every contract command is live, both normative examples
+check *and run with correct results* (median through a real insertion
+sort; read_file through fake and real capabilities), the rejection
+corpus is audited by an executable checklist, and the canonical printer
+is byte-identical on the examples with `parse → print` a fixpoint. The
+exit criteria are met; plan 03 is unblocked.

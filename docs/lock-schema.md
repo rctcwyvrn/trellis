@@ -83,7 +83,12 @@ Top-level keys, in order:
 
 - `soil_hash`: content-address of the Soil body **plus transitively
   referenced private helpers** (design §6.3), free variables replaced by
-  callee hashes (design §6.1).
+  callee hashes (design §6.1). *Adopted 2026-08-23 (design §6.1, §4.8):*
+  the hash is computed over the **canonical text of the alpha-normalized
+  AST** — local binders as indices, display names excluded, exactly one
+  printed form per AST (the printer is a compiler pass; soil0 impl step
+  11) — so local renames and formatting can never invalidate caching or
+  verification.
 - `provenance`: `agent` | `human-verified` | `hand-edited` | `prelude-fork`.
   `hand-edited` skips re-lowering until the spec changes (design §4.8).
 - `provider` / `model`: which agent produced the current Soil, for audit and
@@ -100,8 +105,9 @@ Top-level keys, in order:
 ```json
 "checks": {
   "types": "ok",
-  "refinements": "demoted",
-  "demoted": ["upper bound"]
+  "termination": "verified",
+  "refinements": { "upper bound": "proven", "non-empty": "runtime" },
+  "holes": 0
 }
 ```
 
@@ -111,12 +117,20 @@ Top-level keys, in order:
   exists (plans 04–05), recursive definitions claiming totality carry
   `unverified`: the demotion philosophy applied to `div` — unproven,
   visible, tests still gate.
-- `refinements`: `proven` | `demoted` | `none`. Demotion is per design
-  §6.4: the function drops to its base ML type for callers, tests remain
-  required, and the runtime check stays in release builds (design §3.9).
-- `demoted`: the clause labels (grammar prototype §3.2) that failed to
-  prove — what the IDE renders as the unproven chain.
-- Type entries use `invariants` in place of `refinements`.
+- `refinements`: **assurance per clause** (adopted 2026-08-23, design
+  §6.4), a map from clause label (grammar prototype §3.2) to `proven`
+  (SMT unsat; erased in release) | `runtime` (solver unknown/timeout —
+  demoted, guard active in every build) | `trusted` (human escape
+  hatch). `{}` when the definition has no refinements. A definition can
+  honestly be two-proven-one-runtime; the IDE renders the unproven chain
+  from the `runtime` entries. **A counterexample is never a state**: sat
+  with a model fails the lowering, and the counterexample becomes a
+  structured repair input and an offered expect test (design §6.4) —
+  `runtime` means "undecided", never "known wrong".
+- `holes`: the count of unfilled typed holes (design §3.16). Nonzero is
+  the `partial` state: the lowering paused with goals open.
+- Type entries use `invariants` in place of `refinements` (same
+  per-clause map).
 
 ## 5. `tests` and `oracles`
 
@@ -144,9 +158,16 @@ Top-level keys, in order:
   bindings per design §4.5, invariant properties for types).
 - `result`: `pass` | `fail` | `xfail` (expected failure, failed) | `xpass`
   (expected failure, passed — needs spec attention). Failure details
-  (counterexample, diff) are not stored here; they live in `f.log` and the
-  IDE. Results are cache entries keyed by the hashes (design §6.1), so they
-  churn only when inputs do.
+  (counterexample, diff, and the `blame` field — `caller` for a
+  `requires` violation, `callee` for `ensures`/`invariant`, design §6.4)
+  are not stored here; they live in `f.log` and the IDE. Results are
+  cache entries keyed by the hashes (design §6.1), so they churn only
+  when inputs do.
+- `mutation` (reserved 2026-08-23, design §4.5; written by the post-v1
+  `trellis mutants` job): `{ "score": 0.87, "survivors": n }` — the
+  test-strength record, reservable now so its arrival is not a format
+  change. Survivor details live in `f.log` and the IDE's
+  mutant-to-test flow.
 - `oracles`: what the tests depend on beyond the definition itself — the
   reference implementation (by file hash), `accepted` definitions used as
   oracles (by `formal_hash`), and CLI oracles (by executable hash):
@@ -200,11 +221,19 @@ the prelude and batteries by full package hash (design §5).
 The `typed` / `tested` / `verified` / `accepted` ladder (design §4.7) is
 **derived, never stored**:
 
-- `typed` — `checks.types == "ok"`.
+- `typed` — `checks.types == "ok"` and `checks.holes == 0`.
+- `partial` — `checks.holes > 0` (design §3.16): the lowering paused with
+  open goals; never `tested`, never `accepted`, excluded from release
+  targets.
 - `tested` — typed, and every test result is `pass` or `xfail`.
-- `verified` — tested, and `checks.refinements == "proven"` (unreachable
-  when `refinements` is `none`; only `tested` means correct, design §4.1).
+- `verified` — tested, and every `checks.refinements` clause is `proven`
+  (unreachable when the map is empty; only `tested` means correct, design
+  §4.1).
 - `accepted` — the stored flag.
+
+Module and project badges are the **minimum** over exported definitions'
+statuses and clause assurances (design §7.1) — derived by the IDE, never
+stored.
 
 Invariants the daemon enforces:
 
@@ -214,6 +243,8 @@ Invariants the daemon enforces:
 2. A `human`-authored block may not be rewritten by the agent; the lowerer
    can only `ask_human`.
 3. Only `accepted` definitions may appear in another entry's `oracles`.
+4. A definition with `checks.holes > 0` cannot be `tested` or `accepted`
+   and never reaches a build target (design §3.16).
 
 Invalidation on change:
 

@@ -1,0 +1,17 @@
+{"program":"program.json",
+ "cases":[
+  {"name":"found-and-missing#1","def":"read_file",
+   "binds":[{"bind":"fs","ctor":"fake_fs","args":[[{"key":"config.toml","value":"port = 8080"}]]}],
+   "args":[{"tag":"Binding","value":{"name":"fs"}},{"tag":"Json","value":"config.toml"}],
+   "expect":{"tag":"Value","value":{"tag":"Ok","value":"port = 8080"}},
+   "xfail":false},
+  {"name":"found-and-missing#2","def":"read_file",
+   "binds":[{"bind":"fs","ctor":"fake_fs","args":[[{"key":"config.toml","value":"port = 8080"}]]}],
+   "args":[{"tag":"Binding","value":{"name":"fs"}},{"tag":"Json","value":"missing.toml"}],
+   "expect":{"tag":"Value","value":{"tag":"Err","value":{"tag":"NotFound","value":{"path":"missing.toml"}}}},
+   "xfail":false},
+  {"name":"known-gap#1","def":"read_file",
+   "binds":[{"bind":"fs","ctor":"fake_fs","args":[[]]}],
+   "args":[{"tag":"Binding","value":{"name":"fs"}},{"tag":"Json","value":"x"}],
+   "expect":{"tag":"Value","value":{"tag":"Ok","value":"nope"}},
+   "xfail":true}]}

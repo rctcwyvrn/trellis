@@ -1,0 +1,2 @@
+f : I64 -> Result I64 I64
+f x = Ok x

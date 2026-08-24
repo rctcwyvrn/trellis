@@ -1,0 +1,2 @@
+len : List F64 -> I64
+len xs = list_len xs

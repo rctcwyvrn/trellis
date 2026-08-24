@@ -11,6 +11,9 @@ pub enum PanicKind {
     Overflow,
     /// Zero divisor in integer `/` or `%`.
     DivideByZero,
+    /// An index outside a collection's bounds (design §3.3: indexing is
+    /// a `panic` source).
+    IndexOutOfBounds,
     /// Input JSON rejected by type-directed decode.
     DecodeError,
     /// A value of the wrong shape reached an operation (defensive; the
@@ -31,6 +34,7 @@ impl PanicKind {
         match self {
             PanicKind::Overflow => "overflow",
             PanicKind::DivideByZero => "divide-by-zero",
+            PanicKind::IndexOutOfBounds => "index-out-of-bounds",
             PanicKind::DecodeError => "decode-error",
             PanicKind::TypeError => "type-error",
             PanicKind::DerivationError => "derivation-error",

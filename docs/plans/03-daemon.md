@@ -53,6 +53,38 @@ Execution is delegated to `soil0` throughout.
 9. **Telemetry.** Tokens, cost, retries, provider, model per lowering, to
    `f.log`; provider/model into the lock's lowering record.
 
+## Adoptions (2026-08-23, agentlanguages survey)
+
+The survey adoptions (design doc, entries marked "adopted 2026-08-23";
+record in `docs/plans/extra/agentlanguages-adoptions.md`) land here:
+
+- **Repair-class registry, drift-gated** (design §4.6): every daemon/LSP
+  diagnostic carries a stable code mapping to a typed repair class plus a
+  `spec_ref` into the sectioned Soil spec; CI fails when registry, docs,
+  and emissions disagree. soil0's contract §2 registry is the substrate.
+- **Budgeted context packer** (design §4.6): the bundle assembler is
+  `trellis context <def> --budget <n>` with fixed priority (spec > tests
+  > callee signatures > corpus examples > module prose).
+- **Decision blocks in bundles** (design §4.3, tr-grammar §5.2):
+  `_project.tr` decisions in every bundle, module decisions in the
+  module's; rule-shaped `ask_human` answers write back to decisions.
+  Resolve tr-grammar §9's open question (flag vs invalidate) here.
+- **Generated skill** (design §4.6): `trellis skill` assembles the
+  lowering skill from the toolchain's registries + the pinned prelude;
+  drift-gated in CI.
+- **Toolchain pin, refuse-on-mismatch** (design §8): the daemon refuses
+  to lower/verify under a mismatched pin; `trellis toolchain update` is
+  the explicit upgrade event.
+- **`partial(holes)` lock state** (design §3.16, lock-schema §4): the
+  lowering loop treats the hole as the retry unit; budget exhaustion
+  pauses with goals open instead of failing whole.
+- **Vacuity probes** in the contradiction pre-flight (design §4.5).
+- **Canonical `soil_hash`** (design §6.1): hashing consumes soil0's
+  step-11 printer (canonical text of the alpha-normalized AST); the
+  lowerer's `write_soil` canonicalizes.
+- Deferred but shaped here: speculative proof-delta tools,
+  `trellis mutants` (lock fields reserved) — design §10.
+
 ## Non-goals
 
 The IDE (plan 06), LSP beyond bare diagnostics, refinement checking,
