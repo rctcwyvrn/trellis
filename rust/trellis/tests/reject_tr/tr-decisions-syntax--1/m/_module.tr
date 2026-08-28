@@ -1,0 +1,13 @@
+---
+name: m
+---
+
+Prose.
+
+```exports
+foo
+```
+
+```decisions
+  rejected: an orphan rejected line
+```

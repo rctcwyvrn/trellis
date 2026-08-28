@@ -1,0 +1,9 @@
+---
+name: mean
+---
+
+A prose sentence.
+
+```test t
+(1) => 2
+```

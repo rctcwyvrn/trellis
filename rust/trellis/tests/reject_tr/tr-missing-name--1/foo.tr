@@ -1,0 +1,9 @@
+---
+tags: [parser]
+---
+
+Prose.
+
+```test t
+(1) => 2
+```

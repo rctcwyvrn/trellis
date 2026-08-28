@@ -1,0 +1,9 @@
+---
+name: BadType
+---
+
+Prose.
+
+```soil-type
+type BadType = {
+```

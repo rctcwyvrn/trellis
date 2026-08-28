@@ -67,6 +67,12 @@ Top-level keys, in order:
   public signature. Present from the start, unenforced in v1.
 - `escape_hatches`: the contents of the `allow` block, aggregated by the
   manifest into the audit view (design §4.1).
+- `decisions` (module and project entries only; adopted 2026-08-24,
+  tr-grammar §5.2): a map from entry label to the hash of that entry's
+  text (rejected lines included). Decisions are their own hash class —
+  `decisions` blocks are excluded from `prose` — and labels are
+  identity (a rename is remove + add). Function entries record their
+  reliance on these under `lowering.decisions` (§3).
 
 ## 3. `lowering`
 
@@ -77,7 +83,11 @@ Top-level keys, in order:
   "provider": "claude-code",
   "model": "claude-opus-4-7",
   "private_helpers": [ { "name": "_parse_cell", "hash": "sha256:3fe210bb" } ],
-  "calls": [ { "name": "sort_by", "hash": "sha256:aa90b1f3" } ]
+  "calls": [ { "name": "sort_by", "hash": "sha256:aa90b1f3" } ],
+  "decisions": {
+    "scope_hash": "sha256:5b21aa04",
+    "applied": [ { "scope": "project", "label": "timestamps", "hash": "sha256:c91d20fe" } ]
+  }
 }
 ```
 
@@ -93,12 +103,29 @@ Top-level keys, in order:
   `hand-edited` skips re-lowering until the spec changes (design §4.8).
 - `provider` / `model`: which agent produced the current Soil, for audit and
   future model routing. Costs, retries, and timings live in the gitignored
-  `f.log`, not here (design §4.6).
+  `f.log`, not here (design §4.6). Present only when an agent ran:
+  hand-written entries (`human-verified`, `hand-edited` without a prior
+  agent run) carry the `Option` encoding's `None` (resolved 2026-08-28
+  with the examples-regeneration policy — a lock must not assert a
+  lowering event that never happened).
 - `private_helpers`: the `_private.soil` definitions this lowering owns
   (design §4.2); the manifest derives its `soil-private` nodes from these,
   and a helper with no remaining owner is garbage-collected.
 - `calls`: callee edges with the hashes they were checked against — the
   graph view and the invalidation record (design §4.3, §6.1).
+- `decisions` (adopted 2026-08-24, design §4.3; tr-grammar §5.2):
+  **reliance edges**, the decisions analog of `calls`. `applied` lists
+  the decision entries the lowerer cited as applied — the citation is a
+  required part of the lowering's completion output, possibly empty —
+  each pinned at the entry hash it was applied under (`scope` is
+  `project` | `module`). `scope_hash` covers the sorted entry *labels*
+  in scope (membership, not text), so additions and removals are
+  visible without text edits flagging everyone. Staleness is derived,
+  never stored (§8): an `applied` hash that no longer matches the
+  current entry — or whose entry is gone — flags this lowering; a
+  `scope_hash` mismatch flags everything in scope. An *editorial*
+  reclassification by the human, or a triage-sweep confirmation that
+  the Soil still conforms, re-stamps these hashes without re-lowering.
 
 ## 4. `checks`
 
@@ -147,7 +174,15 @@ Top-level keys, in order:
 ```
 
 - `name`: `block-name#k` for multi-case blocks; the bare block name for
-  single-case blocks; a clause label for derived tests.
+  single-case blocks. Derived tests are namespaced (resolved
+  2026-08-24 with impl plan 03 §9.5): `derived:ensures:<label>` /
+  `derived:requires:<label>` / `derived:invariant:<label>` for
+  clause-derived properties, `derived:differential:<reference-line>`
+  for the reference tier, `derived:contract:<n>` reserved for FFI
+  contract tests (plan 06). The `derived:` prefix can never collide
+  with a spec block name; chosen over bare clause labels for exactly
+  that reason. (The pre-daemon example locks used ad hoc names; the
+  regeneration pass rewrites them.)
 - `tier`: the test lattice (design §4.5): `expect` | `property` | `cram` |
   `contract` | `differential` | `proof`.
 - `mode`: `sandboxed` (fakes, runnable by the lowerer's `run_tests`) |
@@ -235,11 +270,20 @@ Module and project badges are the **minimum** over exported definitions'
 statuses and clause assurances (design §7.1) — derived by the IDE, never
 stored.
 
+**Decision staleness** (2026-08-24) is likewise derived, never stored:
+compare `lowering.decisions` against the module/project entries'
+current hashes (§3). It surfaces alongside `review-suggested` and does
+not block the ladder — tests remain the trust root; the triage sweep
+and the editorial reclassification (tr-grammar §5.2) are the clearing
+paths.
+
 Invariants the daemon enforces:
 
 1. `accepted` may be `true` only if `tested` holds and no result is `xfail`
    or `xpass` (design §4.5) — resolving an xfail is a spec change, which
-   clears `accepted` via the hash rules below.
+   clears `accepted` via the hash rules below. This gate applies to
+   function entries; module and project entries carry `accepted`
+   ungated (they have no tests — §9, resolved 2026-08-24).
 2. A `human`-authored block may not be rewritten by the agent; the lowerer
    can only `ask_human`.
 3. Only `accepted` definitions may appear in another entry's `oracles`.
@@ -253,15 +297,26 @@ Invalidation on change:
 | `spec.hashes.formal` | lowering invalid; re-lower or re-verify; callers follow via `calls[].hash` |
 | `spec.hashes.test` | re-run tests; re-lower if failing |
 | `spec.hashes.prose` | `prose_state: "review-suggested"`; lowering stays valid |
+| a decision entry's text | citing lowerings become decision-stale (derived from `lowering.decisions.applied`); cleared by editorial reclassification, triage confirmation, or re-lowering |
+| a decision entry added or removed | every in-scope lowering's `scope_hash` mismatches — flagged once; a removal may be reclassified editorial |
+| a decision edit reclassified *editorial* by the human | recorded hashes re-stamped; nothing flagged |
 | an oracle's hash | re-run the dependent tests only |
 | Soil hand-edit | `soil_hash` updated, `provenance: "hand-edited"`, re-lowering skipped until spec changes |
 | `versions` | nothing, until the spec changes (design §7.1 upgrade policy) |
 
 ## 9. Open questions raised by this prototype
 
-- Whether module entries participate in `accepted` (CI policy currently
-  keys on exported *function* definitions) or carry only hashes.
-- Naming scheme for `derived` tests is ad hoc (clause labels, contract
-  names); needs fixing before the daemon exists.
-- Whether `versions` should pin the prelude fork hash per entry or leave it
-  global in `soil.toml`.
+All three questions raised by the first draft were resolved 2026-08-24
+with impl plan 03 (§9.5, §9.6):
+
+- Module and project entries **carry `accepted`** — a human can
+  meaningfully accept an export list and a decisions block — but CI
+  policy and badges continue to key on exported *function*
+  definitions, so nothing changes downstream. Module/project entries
+  have no tests, so their `accepted` has no derived gate (invariant 1
+  in §8 applies to function entries).
+- The `derived` naming scheme is the `derived:` namespace (§5).
+- The prelude-fork hash stays **global** in `soil.toml`'s
+  `trusted_packages`: per-entry pins would repeat one hash everywhere
+  until per-entry forks exist, and the toolchain pin (design §8)
+  already refuses to lower or verify under a changed prelude.

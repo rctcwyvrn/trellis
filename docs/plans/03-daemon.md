@@ -34,9 +34,11 @@ Execution is delegated to `soil0` throughout.
    `spec.md`, `callees/` (signatures only; demoted refinements shown as
    base type + note), `tests.json`, `examples/` (prelude corpus),
    `reference.py` or CLI-oracle stanza, `previous.soil`.
-6. **MCP server + lowering jobs.** The six tools (`read_context`,
+6. **MCP server + lowering jobs.** The seven tools (`read_context`,
    `check_types`, `check_refinements` — a stub returning `none` until
-   soilc, `run_tests` (sandboxed, fakes only), `write_soil`, `ask_human`);
+   soilc, `run_tests` (sandboxed, fakes only), `write_soil`,
+   `read_spec` — pinned spec sections by anchor, added 2026-08-25 with
+   the daemon contract, `ask_human`);
    one headless agent invocation per lowering (Claude Code provider
    first) with turn/time/cost caps, isolated agent home, every tool call
    logged to `f.log`; `ask_human` ends the invocation, the answer is
@@ -68,7 +70,9 @@ record in `docs/plans/extra/agentlanguages-adoptions.md`) land here:
 - **Decision blocks in bundles** (design §4.3, tr-grammar §5.2):
   `_project.tr` decisions in every bundle, module decisions in the
   module's; rule-shaped `ask_human` answers write back to decisions.
-  Resolve tr-grammar §9's open question (flag vs invalidate) here.
+  tr-grammar §9's open question (flag vs invalidate) was resolved
+  2026-08-24: per-entry hashes with reliance edges, editorial
+  reclassification, and the triage sweep (design §4.3; impl plan §9.4).
 - **Generated skill** (design §4.6): `trellis skill` assembles the
   lowering skill from the toolchain's registries + the pinned prelude;
   drift-gated in CI.
@@ -119,8 +123,8 @@ concurrent lowerings, raw-API provider, hosted anything.
 - **Language:** Rust, in the `rust/` workspace as `trellis-daemon`,
   linking `soil0` and `soil-rt` (the `soil0` CLI remains the oracle
   contract regardless).
-- **Sandboxing: all three layers.** Tool allow-list (the six MCP tools,
-  no shell) + the agent CLI's own sandbox and isolated home + a
+- **Sandboxing: all three layers.** Tool allow-list (the scope-6 MCP
+  tools, no shell) + the agent CLI's own sandbox and isolated home + a
   chroot-style OS jail around the agent process (unprivileged via user
   namespaces / bubblewrap in practice). Defense in depth from v1.
 - **Incremental state:** explicit refresh — hashes re-checked at request

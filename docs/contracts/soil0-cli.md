@@ -1,12 +1,14 @@
 # The `soil0` CLI — Oracle Contract
 
-*Status: **frozen — contract v1.1** (v1 approved 2026-08-22; amended to
+*Status: **frozen — contract v1.2** (v1 approved 2026-08-22; amended to
 v1.1 on 2026-08-23 with the agentlanguages-survey adoptions — typed
 holes: the `Hole` expression, `checks.holes`, the `unfilled-hole` code,
 `run`/`test` refusal; and the reserved `print` command for the canonical
-printer, arriving with impl step 11. The amendments are additive: v1
-outputs are byte-identical for hole-free programs, and `soil0_cli`
-stays `1` for additive amendments.) This document is the compatibility
+printer, arriving with impl step 11; amended to v1.2 on 2026-08-24,
+resolving §13.5 for the daemon's env generator — `VariantD.fields` for
+inline-record variant payloads, §6. The amendments are additive: v1
+outputs are byte-identical for hole-free programs, v1.1 env files
+decode unchanged, and `soil0_cli` stays `1` for additive amendments.) This document is the compatibility
 contract of the `soil0` binary, the format every differential oracle
 for `soilc` (plan 05) compares against, and the surface the daemon
 (plan 03) drives. Changing anything here is a contract change requiring
@@ -262,8 +264,17 @@ type TypeBody = Record { fields : List FieldD }
               | Alias { ty : SigType }
 type FieldD   = { name : Utf8, shape : SigType
                 , ignored : Option IgnoredDefault }   -- Const | CopyField, impl plan 01 §8.14
-type VariantD = { name : Utf8, payload : Option SigType }
+type VariantD = { name : Utf8, payload : Option SigType
+                , fields : Option (List FieldD) }     -- v1.2 (§13.5)
 ```
+
+`payload` and `fields` are mutually exclusive (both `Some` is
+`malformed-input`); `fields` declares an inline-record payload
+(tr-grammar §4.1's `NotFound { path : Path }` form), registered as a
+record payload exactly as the kernel already models its own — the
+value encoding is unchanged (`{"tag": …, "value": {…fields}}`,
+tr-grammar §7). v1.1 env files, which omit the key, decode with
+`fields = None` (v1.2, 2026-08-24).
 
 Field, payload, and alias types use the **semantic type encoding**
 (§5) — one type encoding for signatures and environments (resolved
@@ -575,7 +586,11 @@ performance of everything.
    its own record payloads internally; a user `env.json` cannot declare
    one yet. The encoding decision belongs to the daemon's env generator
    (plan 03), which is the first thing that will need it — raise it
-   there rather than inventing a shape now.
+   there rather than inventing a shape now. *Resolved 2026-08-24
+   (v1.2, with impl plan 03 §9.1): `VariantD` gains
+   `fields : Option (List FieldD)` (§6) — the honest representation,
+   additive like v1.1. Rejected: generator-synthesized hidden record
+   types (reserved names leaking into diagnostics and `show`).*
 6. **v1.1 amendments (2026-08-23, from the agentlanguages-survey
    adoptions; approved with them).** Typed holes: `Expr.Hole`,
    `checks.holes`, `unfilled-hole`, run/test refusal — design §3.16;

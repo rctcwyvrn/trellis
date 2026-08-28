@@ -1,0 +1,74 @@
+TrFile {
+    name: "ParseError",
+    tags: [],
+    kind: Type,
+    frontmatter_len: 25,
+    name_span: 4..21,
+    has_prose: true,
+    blocks: [
+        Block {
+            id: "soil-type",
+            lang: "soil-type",
+            name: None,
+            xfail: false,
+            agent: false,
+            span: 152..241,
+            content: "type ParseError =\n  | EmptyLine\n  | BadCell { index : U64, text : Utf8 }\n",
+            payload: TypeDef(
+                TypeDef {
+                    name: "ParseError",
+                    params: [],
+                    body: Sum(
+                        [
+                            Ctor {
+                                name: "EmptyLine",
+                                payload: None,
+                            },
+                            Ctor {
+                                name: "BadCell",
+                                payload: Some(
+                                    Record(
+                                        [
+                                            Field {
+                                                name: "index",
+                                                ty: Spanned {
+                                                    span: Span {
+                                                        start: 0,
+                                                        end: 3,
+                                                        line: 1,
+                                                        col: 1,
+                                                    },
+                                                    item: Con {
+                                                        name: "U64",
+                                                        args: [],
+                                                    },
+                                                },
+                                                ignored: None,
+                                            },
+                                            Field {
+                                                name: "text",
+                                                ty: Spanned {
+                                                    span: Span {
+                                                        start: 0,
+                                                        end: 4,
+                                                        line: 1,
+                                                        col: 1,
+                                                    },
+                                                    item: Con {
+                                                        name: "Utf8",
+                                                        args: [],
+                                                    },
+                                                },
+                                                ignored: None,
+                                            },
+                                        ],
+                                    ),
+                                ),
+                            },
+                        ],
+                    ),
+                },
+            ),
+        },
+    ],
+}

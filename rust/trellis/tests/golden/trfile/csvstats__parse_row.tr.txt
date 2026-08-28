@@ -1,0 +1,246 @@
+TrFile {
+    name: "parse_row",
+    tags: [
+        "parser",
+    ],
+    kind: Function,
+    frontmatter_len: 39,
+    name_span: 4..20,
+    has_prose: true,
+    blocks: [
+        Block {
+            id: "soil-sig",
+            lang: "soil-sig",
+            name: None,
+            xfail: false,
+            agent: false,
+            span: 253..319,
+            content: "parse_row : (line : Utf8) -> Result Row ParseError\n",
+            payload: Sig(
+                Sig {
+                    name: "parse_row",
+                    ty: Spanned {
+                        span: Span {
+                            start: 12,
+                            end: 50,
+                            line: 1,
+                            col: 13,
+                        },
+                        item: Arrow {
+                            param: Opt(
+                                Some(
+                                    Binder {
+                                        span: Span {
+                                            start: 13,
+                                            end: 17,
+                                            line: 1,
+                                            col: 14,
+                                        },
+                                        name: "line",
+                                    },
+                                ),
+                            ),
+                            dom: Spanned {
+                                span: Span {
+                                    start: 20,
+                                    end: 24,
+                                    line: 1,
+                                    col: 21,
+                                },
+                                item: Con {
+                                    name: "Utf8",
+                                    args: [],
+                                },
+                            },
+                            row: Row {
+                                effects: [],
+                                var: Opt(
+                                    None,
+                                ),
+                            },
+                            cod: Spanned {
+                                span: Span {
+                                    start: 29,
+                                    end: 50,
+                                    line: 1,
+                                    col: 30,
+                                },
+                                item: Con {
+                                    name: "Result",
+                                    args: [
+                                        Spanned {
+                                            span: Span {
+                                                start: 36,
+                                                end: 39,
+                                                line: 1,
+                                                col: 37,
+                                            },
+                                            item: Con {
+                                                name: "Row",
+                                                args: [],
+                                            },
+                                        },
+                                        Spanned {
+                                            span: Span {
+                                                start: 40,
+                                                end: 50,
+                                                line: 1,
+                                                col: 41,
+                                            },
+                                            item: Con {
+                                                name: "ParseError",
+                                                args: [],
+                                            },
+                                        },
+                                    ],
+                                },
+                            },
+                        },
+                    },
+                },
+            ),
+        },
+        Block {
+            id: "test happy-path",
+            lang: "test",
+            name: Some(
+                "happy-path",
+            ),
+            xfail: false,
+            agent: false,
+            span: 321..478,
+            content: "(\"1.0,2.5,3.0\") => {\"tag\": \"Ok\", \"value\": {\"cells\": [1.0, 2.5, 3.0]}}\n(\"  4.0 , 5.0\") => {\"tag\": \"Ok\", \"value\": {\"cells\": [4.0, 5.0]}}\n",
+            payload: Tests(
+                TestBlock {
+                    withs: [],
+                    cases: [
+                        TestCase {
+                            args: [
+                                Json(
+                                    String("1.0,2.5,3.0"),
+                                ),
+                            ],
+                            outcome: Value(
+                                Object {
+                                    "tag": String("Ok"),
+                                    "value": Object {
+                                        "cells": Array [
+                                            Number(1.0),
+                                            Number(2.5),
+                                            Number(3.0),
+                                        ],
+                                    },
+                                },
+                            ),
+                        },
+                        TestCase {
+                            args: [
+                                Json(
+                                    String("  4.0 , 5.0"),
+                                ),
+                            ],
+                            outcome: Value(
+                                Object {
+                                    "tag": String("Ok"),
+                                    "value": Object {
+                                        "cells": Array [
+                                            Number(4.0),
+                                            Number(5.0),
+                                        ],
+                                    },
+                                },
+                            ),
+                        },
+                    ],
+                },
+            ),
+        },
+        Block {
+            id: "test errors",
+            lang: "test",
+            name: Some(
+                "errors",
+            ),
+            xfail: false,
+            agent: false,
+            span: 480..649,
+            content: "(\"\") => {\"tag\": \"Err\", \"value\": {\"tag\": \"EmptyLine\"}}\n(\"1.0,x,3.0\") => {\"tag\": \"Err\", \"value\": {\"tag\": \"BadCell\", \"value\": {\"index\": 1, \"text\": \"x\"}}}\n",
+            payload: Tests(
+                TestBlock {
+                    withs: [],
+                    cases: [
+                        TestCase {
+                            args: [
+                                Json(
+                                    String(""),
+                                ),
+                            ],
+                            outcome: Value(
+                                Object {
+                                    "tag": String("Err"),
+                                    "value": Object {
+                                        "tag": String("EmptyLine"),
+                                    },
+                                },
+                            ),
+                        },
+                        TestCase {
+                            args: [
+                                Json(
+                                    String("1.0,x,3.0"),
+                                ),
+                            ],
+                            outcome: Value(
+                                Object {
+                                    "tag": String("Err"),
+                                    "value": Object {
+                                        "tag": String("BadCell"),
+                                        "value": Object {
+                                            "index": Number(1),
+                                            "text": String("x"),
+                                        },
+                                    },
+                                },
+                            ),
+                        },
+                    ],
+                },
+            ),
+        },
+        Block {
+            id: "test scientific-notation",
+            lang: "test",
+            name: Some(
+                "scientific-notation",
+            ),
+            xfail: true,
+            agent: false,
+            span: 726..818,
+            content: "(\"1e3\") => {\"tag\": \"Ok\", \"value\": {\"cells\": [1000.0]}}\n",
+            payload: Tests(
+                TestBlock {
+                    withs: [],
+                    cases: [
+                        TestCase {
+                            args: [
+                                Json(
+                                    String("1e3"),
+                                ),
+                            ],
+                            outcome: Value(
+                                Object {
+                                    "tag": String("Ok"),
+                                    "value": Object {
+                                        "cells": Array [
+                                            Number(1000.0),
+                                        ],
+                                    },
+                                },
+                            ),
+                        },
+                    ],
+                },
+            ),
+        },
+    ],
+}

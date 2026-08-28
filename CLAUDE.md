@@ -50,5 +50,7 @@ implementation.** Do not scaffold code unless asked.
   carries a *Status* header noting what it resolves and where examples are.
 - Spec docs end with an "open questions" section; resolve items in place
   and note the resolution rather than deleting silently.
-- Hashes in examples are abbreviated fakes (`sha256:9f2c41aa`); keep that
-  style.
+- Hashes in **docs prose** are abbreviated fakes (`sha256:9f2c41aa`);
+  keep that style. `examples/*.lock` sidecars carry **real** full
+  digests once the daemon regenerates them (plan 03 step 5, decided
+  2026-08-24) — never hand-edit those; regenerate.

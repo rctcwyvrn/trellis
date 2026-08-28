@@ -9,6 +9,7 @@ pub mod ast;
 pub mod cli;
 pub mod diag;
 pub mod exhaust;
+pub mod hashform;
 pub mod infer;
 pub mod interp;
 pub mod kernel;

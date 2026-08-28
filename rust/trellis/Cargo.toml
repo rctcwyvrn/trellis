@@ -1,0 +1,20 @@
+[package]
+name = "trellis"
+version = "0.1.0"
+edition = "2021"
+description = "The Trellis daemon and thin CLI: hashing, locks, context bundles, lowering jobs"
+# Toolchain, not runtime: no GCC runtime exception (design §7.1).
+license = "GPL-3.0-or-later"
+
+[dependencies]
+soil0 = { path = "../soil0" }
+pulldown-cmark = { version = "0.13", default-features = false }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["float_roundtrip"] }
+sha2 = "0.10"
+# soil.toml needs a real TOML parser; hand-rolling TOML repeats the
+# subtle-divergence risk the pulldown-cmark pin rejected (impl plan 03 §2).
+toml = "0.8"
+
+[dev-dependencies]
+proptest = "1"

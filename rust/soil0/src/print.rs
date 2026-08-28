@@ -480,6 +480,13 @@ fn inline_prec(e: &Expr, level: u8) -> String {
             arith_op(*op),
             inline_prec(&rhs.item, 7)
         ),
+        // A negated negation must parenthesize: attached `--` would
+        // lex as a comment, so `-(-x)` is the one reparseable form
+        // (minimal-parens rule: parens exactly where reparsing would
+        // otherwise change — or lose — the tree).
+        Expr::Neg { operand } if matches!(operand.item, Expr::Neg { .. }) => {
+            format!("-({})", inline(&operand.item))
+        }
         Expr::Neg { operand } => format!("-{}", inline_prec(&operand.item, 7)),
         Expr::App { r#fn, arg } => format!(
             "{} {}",

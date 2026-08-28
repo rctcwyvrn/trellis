@@ -1,0 +1,14 @@
+---
+name: foo
+---
+
+A prose sentence.
+
+```test t
+(1) => 2
+```
+
+```cram c
+output before any command
+$ true
+```

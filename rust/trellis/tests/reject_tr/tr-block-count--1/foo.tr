@@ -1,0 +1,17 @@
+---
+name: foo
+---
+
+A prose sentence.
+
+```test t
+(1) => 2
+```
+
+```soil-sig
+foo : I64 -> I64
+```
+
+```soil-sig
+foo : I64 -> I64
+```

@@ -398,8 +398,43 @@ byte-identity, which is a conformance test.*
 - **Spacing**: single spaces around binary operators, `:` in signatures
   and refinements, `=` in bindings and record fields, and `|` in
   refinements; `{ a = 1, b = 2 }` record spacing; `x.f` and `m::f`
-  unspaced; unary `-` attached.
+  unspaced; unary `-` attached — except that a negated negation
+  prints `-(-x)`, since attached `--` would lex as a comment (a
+  consequence of the minimal-parens rule; found by the printer's
+  fixpoint property, 2026-08-26).
 - **Literals**: integers and floats print their underscore-free source
   text; strings escape exactly `\"`, `\\`, `\n`, `\r`, `\t`, and
   lowercase `\u{…}` for remaining control characters, all other
   characters raw.
+
+### 9.1 Hash form
+
+*Added 2026-08-24 (impl plan 03 §9.2; design §6.1, lock-schema §3):
+the text `soil_hash` is computed over. The canonical form of §9 is the
+display form; the hash form is the same text with local names
+alpha-normalized, so renaming a local binder can never move a hash.*
+
+- The hash form is the §9 canonical text with every **local binder**
+  — equation parameters, `let`/`let rec` binders, `fun` parameters,
+  and pattern binders — replaced by `%N`, where `N` numbers binding
+  sites `0, 1, 2, …` in pre-order of appearance within the
+  definition; every occurrence of a bound name prints its binder's
+  `%N`. `_` binds nothing and stays `_`.
+- Everything at definition level or above is untouched: the
+  definition's own name, callee and private-helper names, type names,
+  constructors, field names, builtin names, and hole names (`?name`
+  is a named goal; renaming it is a visible change to a lowering-time
+  state that never reaches `tested`).
+- The **signature line keeps its declared parameter names** — they
+  are spec surface: the `.tr` signature and its `requires`/`ensures`
+  predicates name them. Consequently renaming a *parameter* is a
+  visible spec change that moves `formal_hash` and `soil_hash`
+  together; only `let`, `fun`, and pattern binder renames are
+  invisible (clarified 2026-08-28, with the step-4 hash tests).
+- The hash form is **not reparsable** (`%N` is not in the grammar)
+  and is not a CLI surface: it is produced by a `soil0` library
+  function the daemon calls. The CLI contract's `print` remains the
+  display form; soilc's printer (plan 05) is differentially tested
+  against `print`, with the hash transform one shared implementation
+  above it. Exposing a `print --hash-form` flag would be a future
+  additive contract amendment; none is planned.

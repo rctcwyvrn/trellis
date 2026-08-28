@@ -1,0 +1,13 @@
+---
+name: foo
+---
+
+A prose sentence.
+
+```test t
+(1) => 2
+```
+
+```property p
+n > 0
+```

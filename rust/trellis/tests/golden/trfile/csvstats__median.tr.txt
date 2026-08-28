@@ -1,0 +1,550 @@
+TrFile {
+    name: "median",
+    tags: [],
+    kind: Function,
+    frontmatter_len: 21,
+    name_span: 4..17,
+    has_prose: true,
+    blocks: [
+        Block {
+            id: "soil-sig",
+            lang: "soil-sig",
+            name: None,
+            xfail: false,
+            agent: false,
+            span: 160..207,
+            content: "median : (xs : List F64) -> F64\n",
+            payload: Sig(
+                Sig {
+                    name: "median",
+                    ty: Spanned {
+                        span: Span {
+                            start: 9,
+                            end: 31,
+                            line: 1,
+                            col: 10,
+                        },
+                        item: Arrow {
+                            param: Opt(
+                                Some(
+                                    Binder {
+                                        span: Span {
+                                            start: 10,
+                                            end: 12,
+                                            line: 1,
+                                            col: 11,
+                                        },
+                                        name: "xs",
+                                    },
+                                ),
+                            ),
+                            dom: Spanned {
+                                span: Span {
+                                    start: 15,
+                                    end: 23,
+                                    line: 1,
+                                    col: 16,
+                                },
+                                item: Con {
+                                    name: "List",
+                                    args: [
+                                        Spanned {
+                                            span: Span {
+                                                start: 20,
+                                                end: 23,
+                                                line: 1,
+                                                col: 21,
+                                            },
+                                            item: Con {
+                                                name: "F64",
+                                                args: [],
+                                            },
+                                        },
+                                    ],
+                                },
+                            },
+                            row: Row {
+                                effects: [],
+                                var: Opt(
+                                    None,
+                                ),
+                            },
+                            cod: Spanned {
+                                span: Span {
+                                    start: 28,
+                                    end: 31,
+                                    line: 1,
+                                    col: 29,
+                                },
+                                item: Con {
+                                    name: "F64",
+                                    args: [],
+                                },
+                            },
+                        },
+                    },
+                },
+            ),
+        },
+        Block {
+            id: "requires",
+            lang: "requires",
+            name: None,
+            xfail: false,
+            agent: false,
+            span: 209..247,
+            content: "non-empty: len(xs) > 0\n",
+            payload: Clauses(
+                [
+                    Clause {
+                        label: "non-empty",
+                        pred: Spanned {
+                            span: Span {
+                                start: 0,
+                                end: 11,
+                                line: 1,
+                                col: 1,
+                            },
+                            item: PCmp {
+                                op: Gt,
+                                lhs: Spanned {
+                                    span: Span {
+                                        start: 0,
+                                        end: 6,
+                                        line: 1,
+                                        col: 1,
+                                    },
+                                    item: PCallE {
+                                        name: "len",
+                                        args: [
+                                            Spanned {
+                                                span: Span {
+                                                    start: 4,
+                                                    end: 6,
+                                                    line: 1,
+                                                    col: 5,
+                                                },
+                                                item: PPath {
+                                                    root: "xs",
+                                                    fields: [],
+                                                },
+                                            },
+                                        ],
+                                    },
+                                },
+                                rhs: Spanned {
+                                    span: Span {
+                                        start: 10,
+                                        end: 11,
+                                        line: 1,
+                                        col: 11,
+                                    },
+                                    item: PLiteral {
+                                        lit: LInt {
+                                            digits: "0",
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
+            ),
+        },
+        Block {
+            id: "ensures",
+            lang: "ensures",
+            name: None,
+            xfail: false,
+            agent: false,
+            span: 249..325,
+            content: "lower bound: min(xs) <= result\nupper bound: result <= max(xs)\n",
+            payload: Clauses(
+                [
+                    Clause {
+                        label: "lower bound",
+                        pred: Spanned {
+                            span: Span {
+                                start: 0,
+                                end: 17,
+                                line: 1,
+                                col: 1,
+                            },
+                            item: PCmp {
+                                op: Le,
+                                lhs: Spanned {
+                                    span: Span {
+                                        start: 0,
+                                        end: 6,
+                                        line: 1,
+                                        col: 1,
+                                    },
+                                    item: PCallE {
+                                        name: "min",
+                                        args: [
+                                            Spanned {
+                                                span: Span {
+                                                    start: 4,
+                                                    end: 6,
+                                                    line: 1,
+                                                    col: 5,
+                                                },
+                                                item: PPath {
+                                                    root: "xs",
+                                                    fields: [],
+                                                },
+                                            },
+                                        ],
+                                    },
+                                },
+                                rhs: Spanned {
+                                    span: Span {
+                                        start: 11,
+                                        end: 17,
+                                        line: 1,
+                                        col: 12,
+                                    },
+                                    item: PPath {
+                                        root: "result",
+                                        fields: [],
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    Clause {
+                        label: "upper bound",
+                        pred: Spanned {
+                            span: Span {
+                                start: 0,
+                                end: 16,
+                                line: 1,
+                                col: 1,
+                            },
+                            item: PCmp {
+                                op: Le,
+                                lhs: Spanned {
+                                    span: Span {
+                                        start: 0,
+                                        end: 6,
+                                        line: 1,
+                                        col: 1,
+                                    },
+                                    item: PPath {
+                                        root: "result",
+                                        fields: [],
+                                    },
+                                },
+                                rhs: Spanned {
+                                    span: Span {
+                                        start: 10,
+                                        end: 16,
+                                        line: 1,
+                                        col: 11,
+                                    },
+                                    item: PCallE {
+                                        name: "max",
+                                        args: [
+                                            Spanned {
+                                                span: Span {
+                                                    start: 14,
+                                                    end: 16,
+                                                    line: 1,
+                                                    col: 15,
+                                                },
+                                                item: PPath {
+                                                    root: "xs",
+                                                    fields: [],
+                                                },
+                                            },
+                                        ],
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
+            ),
+        },
+        Block {
+            id: "reference",
+            lang: "reference",
+            name: None,
+            xfail: false,
+            agent: false,
+            span: 417..454,
+            content: "ref/stats.py::median\n",
+            payload: Reference(
+                Python {
+                    path: "ref/stats.py",
+                    symbol: "median",
+                },
+            ),
+        },
+        Block {
+            id: "test odd-length",
+            lang: "test",
+            name: Some(
+                "odd-length",
+            ),
+            xfail: false,
+            agent: false,
+            span: 456..503,
+            content: "([1.0, 3.0, 2.0]) => 2.0\n",
+            payload: Tests(
+                TestBlock {
+                    withs: [],
+                    cases: [
+                        TestCase {
+                            args: [
+                                Json(
+                                    Array [
+                                        Number(1.0),
+                                        Number(3.0),
+                                        Number(2.0),
+                                    ],
+                                ),
+                            ],
+                            outcome: Value(
+                                Number(2.0),
+                            ),
+                        },
+                    ],
+                },
+            ),
+        },
+        Block {
+            id: "test even-length",
+            lang: "test",
+            name: Some(
+                "even-length",
+            ),
+            xfail: false,
+            agent: false,
+            span: 505..558,
+            content: "([1.0, 2.0, 3.0, 4.0]) => 2.5\n",
+            payload: Tests(
+                TestBlock {
+                    withs: [],
+                    cases: [
+                        TestCase {
+                            args: [
+                                Json(
+                                    Array [
+                                        Number(1.0),
+                                        Number(2.0),
+                                        Number(3.0),
+                                        Number(4.0),
+                                    ],
+                                ),
+                            ],
+                            outcome: Value(
+                                Number(2.5),
+                            ),
+                        },
+                    ],
+                },
+            ),
+        },
+        Block {
+            id: "test single",
+            lang: "test",
+            name: Some(
+                "single",
+            ),
+            xfail: false,
+            agent: false,
+            span: 560..595,
+            content: "([42.0]) => 42.0\n",
+            payload: Tests(
+                TestBlock {
+                    withs: [],
+                    cases: [
+                        TestCase {
+                            args: [
+                                Json(
+                                    Array [
+                                        Number(42.0),
+                                    ],
+                                ),
+                            ],
+                            outcome: Value(
+                                Number(42.0),
+                            ),
+                        },
+                    ],
+                },
+            ),
+        },
+        Block {
+            id: "property order-independent",
+            lang: "property",
+            name: Some(
+                "order-independent",
+            ),
+            xfail: false,
+            agent: false,
+            span: 597..703,
+            content: "forall xs : List F64 where len(xs) > 0\nmedian(xs) == median(reverse(xs))\n",
+            payload: Property(
+                PropertyBlock {
+                    foralls: [
+                        Forall {
+                            name: "xs",
+                            ty: Spanned {
+                                span: Span {
+                                    start: 0,
+                                    end: 8,
+                                    line: 1,
+                                    col: 1,
+                                },
+                                item: Con {
+                                    name: "List",
+                                    args: [
+                                        Spanned {
+                                            span: Span {
+                                                start: 5,
+                                                end: 8,
+                                                line: 1,
+                                                col: 6,
+                                            },
+                                            item: Con {
+                                                name: "F64",
+                                                args: [],
+                                            },
+                                        },
+                                    ],
+                                },
+                            },
+                            filter: Some(
+                                Spanned {
+                                    span: Span {
+                                        start: 0,
+                                        end: 11,
+                                        line: 1,
+                                        col: 1,
+                                    },
+                                    item: PCmp {
+                                        op: Gt,
+                                        lhs: Spanned {
+                                            span: Span {
+                                                start: 0,
+                                                end: 6,
+                                                line: 1,
+                                                col: 1,
+                                            },
+                                            item: PCallE {
+                                                name: "len",
+                                                args: [
+                                                    Spanned {
+                                                        span: Span {
+                                                            start: 4,
+                                                            end: 6,
+                                                            line: 1,
+                                                            col: 5,
+                                                        },
+                                                        item: PPath {
+                                                            root: "xs",
+                                                            fields: [],
+                                                        },
+                                                    },
+                                                ],
+                                            },
+                                        },
+                                        rhs: Spanned {
+                                            span: Span {
+                                                start: 10,
+                                                end: 11,
+                                                line: 1,
+                                                col: 11,
+                                            },
+                                            item: PLiteral {
+                                                lit: LInt {
+                                                    digits: "0",
+                                                },
+                                            },
+                                        },
+                                    },
+                                },
+                            ),
+                        },
+                    ],
+                    pred: Spanned {
+                        span: Span {
+                            start: 0,
+                            end: 31,
+                            line: 1,
+                            col: 1,
+                        },
+                        item: PCmp {
+                            op: Eq,
+                            lhs: Spanned {
+                                span: Span {
+                                    start: 0,
+                                    end: 9,
+                                    line: 1,
+                                    col: 1,
+                                },
+                                item: PCallE {
+                                    name: "median",
+                                    args: [
+                                        Spanned {
+                                            span: Span {
+                                                start: 7,
+                                                end: 9,
+                                                line: 1,
+                                                col: 8,
+                                            },
+                                            item: PPath {
+                                                root: "xs",
+                                                fields: [],
+                                            },
+                                        },
+                                    ],
+                                },
+                            },
+                            rhs: Spanned {
+                                span: Span {
+                                    start: 14,
+                                    end: 31,
+                                    line: 1,
+                                    col: 15,
+                                },
+                                item: PCallE {
+                                    name: "median",
+                                    args: [
+                                        Spanned {
+                                            span: Span {
+                                                start: 21,
+                                                end: 31,
+                                                line: 1,
+                                                col: 22,
+                                            },
+                                            item: PCallE {
+                                                name: "reverse",
+                                                args: [
+                                                    Spanned {
+                                                        span: Span {
+                                                            start: 29,
+                                                            end: 31,
+                                                            line: 1,
+                                                            col: 30,
+                                                        },
+                                                        item: PPath {
+                                                            root: "xs",
+                                                            fields: [],
+                                                        },
+                                                    },
+                                                ],
+                                            },
+                                        },
+                                    ],
+                                },
+                            },
+                        },
+                    },
+                },
+            ),
+        },
+    ],
+}

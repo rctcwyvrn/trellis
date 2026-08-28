@@ -1,0 +1,13 @@
+---
+name: foo
+---
+
+A prose sentence.
+
+```test t
+(1) => 2
+```
+
+```requires
+just some words with no separator
+```

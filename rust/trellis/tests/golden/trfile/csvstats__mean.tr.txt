@@ -1,0 +1,42 @@
+TrFile {
+    name: "mean",
+    tags: [],
+    kind: Function,
+    frontmatter_len: 19,
+    name_span: 4..15,
+    has_prose: true,
+    blocks: [
+        Block {
+            id: "test simple",
+            lang: "test",
+            name: Some(
+                "simple",
+            ),
+            xfail: false,
+            agent: false,
+            span: 72..115,
+            content: "([1.0, 2.0, 3.0]) => 2.0\n",
+            payload: Tests(
+                TestBlock {
+                    withs: [],
+                    cases: [
+                        TestCase {
+                            args: [
+                                Json(
+                                    Array [
+                                        Number(1.0),
+                                        Number(2.0),
+                                        Number(3.0),
+                                    ],
+                                ),
+                            ],
+                            outcome: Value(
+                                Number(2.0),
+                            ),
+                        },
+                    ],
+                },
+            ),
+        },
+    ],
+}

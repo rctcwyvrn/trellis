@@ -53,8 +53,11 @@ engine; first-person compiler personas. Reasons in design §12.
 ## Open questions created by the adoptions
 
 - Decisions hash under `prose_hash` (change flags, doesn't invalidate) —
-  or is a decision closer to formal? Resolve with the bundle packer
-  (tr-grammar §9; plan 03).
+  or is a decision closer to formal? *Resolved 2026-08-24: neither* —
+  a per-entry hash class with reliance edges (lowerings cite the
+  decisions they applied), editorial reclassification for typo-class
+  edits, and a batched triage sweep as the clearing path. Recorded in
+  design §4.3, tr-grammar §1/§5.2/§9, lock-schema §2/§3/§8.
 - The spec-token budget's concrete number (target ~8k tokens for the
   core reference) and the CI counter that enforces it — fix when the
   Soil spec is sectioned (plan 03/05).

@@ -1,0 +1,8 @@
+median : (xs : {v : List F64 | len v > 0}) -> {r : F64 | min xs <= r and r <= max xs}
+median %0 =
+  let %1 = sort_by (fun %2 -> %2) %0 in
+  let %3 = len %1 in
+  let %4 = %3 / 2 in
+  if %3 % 2 == 1
+  then nth %1 %4
+  else (nth %1 (%4 - 1) + nth %1 %4) / 2.0

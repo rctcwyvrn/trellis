@@ -1,0 +1,10 @@
+---
+name: foo
+tags: [parser]
+---
+
+A prose sentence.
+
+```test t
+(1) => 2
+```

@@ -1,0 +1,243 @@
+TrFile {
+    name: "read_file",
+    tags: [],
+    kind: Function,
+    frontmatter_len: 24,
+    name_span: 4..20,
+    has_prose: true,
+    blocks: [
+        Block {
+            id: "soil-sig",
+            lang: "soil-sig",
+            name: None,
+            xfail: false,
+            agent: false,
+            span: 176..258,
+            content: "read_file : (fs : Fs) -> (path : Path) -> io (Result Utf8 FsError)\n",
+            payload: Sig(
+                Sig {
+                    name: "read_file",
+                    ty: Spanned {
+                        span: Span {
+                            start: 12,
+                            end: 65,
+                            line: 1,
+                            col: 13,
+                        },
+                        item: Arrow {
+                            param: Opt(
+                                Some(
+                                    Binder {
+                                        span: Span {
+                                            start: 13,
+                                            end: 15,
+                                            line: 1,
+                                            col: 14,
+                                        },
+                                        name: "fs",
+                                    },
+                                ),
+                            ),
+                            dom: Spanned {
+                                span: Span {
+                                    start: 18,
+                                    end: 20,
+                                    line: 1,
+                                    col: 19,
+                                },
+                                item: Con {
+                                    name: "Fs",
+                                    args: [],
+                                },
+                            },
+                            row: Row {
+                                effects: [],
+                                var: Opt(
+                                    None,
+                                ),
+                            },
+                            cod: Spanned {
+                                span: Span {
+                                    start: 25,
+                                    end: 65,
+                                    line: 1,
+                                    col: 26,
+                                },
+                                item: Arrow {
+                                    param: Opt(
+                                        Some(
+                                            Binder {
+                                                span: Span {
+                                                    start: 26,
+                                                    end: 30,
+                                                    line: 1,
+                                                    col: 27,
+                                                },
+                                                name: "path",
+                                            },
+                                        ),
+                                    ),
+                                    dom: Spanned {
+                                        span: Span {
+                                            start: 33,
+                                            end: 37,
+                                            line: 1,
+                                            col: 34,
+                                        },
+                                        item: Con {
+                                            name: "Path",
+                                            args: [],
+                                        },
+                                    },
+                                    row: Row {
+                                        effects: [
+                                            Io,
+                                        ],
+                                        var: Opt(
+                                            None,
+                                        ),
+                                    },
+                                    cod: Spanned {
+                                        span: Span {
+                                            start: 46,
+                                            end: 65,
+                                            line: 1,
+                                            col: 47,
+                                        },
+                                        item: Con {
+                                            name: "Result",
+                                            args: [
+                                                Spanned {
+                                                    span: Span {
+                                                        start: 53,
+                                                        end: 57,
+                                                        line: 1,
+                                                        col: 54,
+                                                    },
+                                                    item: Con {
+                                                        name: "Utf8",
+                                                        args: [],
+                                                    },
+                                                },
+                                                Spanned {
+                                                    span: Span {
+                                                        start: 58,
+                                                        end: 65,
+                                                        line: 1,
+                                                        col: 59,
+                                                    },
+                                                    item: Con {
+                                                        name: "FsError",
+                                                        args: [],
+                                                    },
+                                                },
+                                            ],
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            ),
+        },
+        Block {
+            id: "test found-and-missing",
+            lang: "test",
+            name: Some(
+                "found-and-missing",
+            ),
+            xfail: false,
+            agent: false,
+            span: 260..521,
+            content: "with fs = fake_fs [{\"key\": \"config.toml\", \"value\": \"port = 8080\"}]\n(fs, \"config.toml\") => {\"tag\": \"Ok\", \"value\": \"port = 8080\"}\n(fs, \"missing.toml\") => {\"tag\": \"Err\", \"value\": {\"tag\": \"NotFound\", \"value\": {\"path\": \"missing.toml\"}}}\n",
+            payload: Tests(
+                TestBlock {
+                    withs: [
+                        WithBind {
+                            name: "fs",
+                            ctor: "fake_fs",
+                            args: [
+                                Array [
+                                    Object {
+                                        "key": String("config.toml"),
+                                        "value": String("port = 8080"),
+                                    },
+                                ],
+                            ],
+                        },
+                    ],
+                    cases: [
+                        TestCase {
+                            args: [
+                                Binding(
+                                    "fs",
+                                ),
+                                Json(
+                                    String("config.toml"),
+                                ),
+                            ],
+                            outcome: Value(
+                                Object {
+                                    "tag": String("Ok"),
+                                    "value": String("port = 8080"),
+                                },
+                            ),
+                        },
+                        TestCase {
+                            args: [
+                                Binding(
+                                    "fs",
+                                ),
+                                Json(
+                                    String("missing.toml"),
+                                ),
+                            ],
+                            outcome: Value(
+                                Object {
+                                    "tag": String("Err"),
+                                    "value": Object {
+                                        "tag": String("NotFound"),
+                                        "value": Object {
+                                            "path": String("missing.toml"),
+                                        },
+                                    },
+                                },
+                            ),
+                        },
+                    ],
+                },
+            ),
+        },
+        Block {
+            id: "cram real-read",
+            lang: "cram",
+            name: Some(
+                "real-read",
+            ),
+            xfail: false,
+            agent: false,
+            span: 574..714,
+            content: "with file \"config.toml\" = \"port = 8080\"\n$ trellis call read_file '\"config.toml\"'\n{\"tag\": \"Ok\", \"value\": \"port = 8080\"}\n",
+            payload: Cram(
+                CramBlock {
+                    files: [
+                        CramFile {
+                            path: "config.toml",
+                            contents: "port = 8080",
+                        },
+                    ],
+                    steps: [
+                        CramStep {
+                            command: "trellis call read_file '\"config.toml\"'",
+                            output: [
+                                "{\"tag\": \"Ok\", \"value\": \"port = 8080\"}",
+                            ],
+                            exit: 0,
+                        },
+                    ],
+                },
+            ),
+        },
+    ],
+}

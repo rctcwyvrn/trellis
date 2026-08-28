@@ -1,0 +1,9 @@
+---
+name: foo
+---
+
+A prose sentence.
+
+```test
+(1) => 2
+```

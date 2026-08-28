@@ -1,2 +1,9 @@
 rust/target/
 book/
+
+# Trellis daemon state (plan 03): derived manifest, scratch, logs,
+# open questions — all regenerable, never inputs (design §4.6).
+.trellis/
+soil.lock
+*.log
+*.question.json

@@ -1,0 +1,38 @@
+TrFile {
+    name: "csvstats",
+    tags: [],
+    kind: Module,
+    frontmatter_len: 23,
+    name_span: 4..19,
+    has_prose: true,
+    blocks: [
+        Block {
+            id: "exports",
+            lang: "exports",
+            name: None,
+            xfail: false,
+            agent: false,
+            span: 230..291,
+            content: "parse_row\nmedian\nmean\ntype Row\ntype ParseError\n",
+            payload: Exports(
+                [
+                    Def(
+                        "parse_row",
+                    ),
+                    Def(
+                        "median",
+                    ),
+                    Def(
+                        "mean",
+                    ),
+                    Type(
+                        "Row",
+                    ),
+                    Type(
+                        "ParseError",
+                    ),
+                ],
+            ),
+        },
+    ],
+}

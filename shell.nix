@@ -20,5 +20,9 @@ pkgs.mkShell {
     rust-analyzer
     rust-cbindgen
     gcc
+    # Plan 03 (the daemon): the OS jail around the lowering agent, and
+    # the interim differential-oracle runner (impl plan 03 step 2).
+    bubblewrap
+    python3
   ];
 }

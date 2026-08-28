@@ -57,6 +57,71 @@ pub fn parse_file(src: &str, filename: &str) -> Result<File, Diagnostic> {
     Ok(File { defs })
 }
 
+/// Parses a standalone signature `name : type` — the `.tr` `soil-sig`
+/// block (tr-grammar §3.1). The daemon links this so the signature
+/// grammar has exactly one implementation. Library-only, like the
+/// other `_str` entries (non-contractual, soil0-cli §12).
+pub fn parse_sig_str(src: &str) -> Result<(String, Spanned<Type>), Diagnostic> {
+    let tokens = lexer::lex(src)?;
+    let mut p = Parser {
+        tokens,
+        pos: 0,
+        map: LineMap::new(src),
+        src_len: src.len(),
+        defname: String::new(),
+    };
+    let name = match p.tok(0) {
+        Some(Token::TIdent { name }) => {
+            let name = name.clone();
+            p.bump();
+            name
+        }
+        _ => return Err(p.err_expected("a definition name")),
+    };
+    p.expect_op(":")?;
+    let ty = p.parse_type()?;
+    if p.tok(0).is_some() {
+        return Err(p.err_expected("end of signature"));
+    }
+    Ok((name, ty))
+}
+
+/// Parses a standalone predicate — the `.tr` clause bodies
+/// (`requires`/`ensures`/`invariant`/`property`, tr-grammar §2.3).
+pub fn parse_pred_str(src: &str) -> Result<Spanned<Pred>, Diagnostic> {
+    let tokens = lexer::lex(src)?;
+    let mut p = Parser {
+        tokens,
+        pos: 0,
+        map: LineMap::new(src),
+        src_len: src.len(),
+        defname: String::new(),
+    };
+    let pred = p.parse_pred()?;
+    if p.tok(0).is_some() {
+        return Err(p.err_expected("end of predicate"));
+    }
+    Ok(pred)
+}
+
+/// Parses a standalone predicate-language expression — the `.tr`
+/// `ignored`-field default (tr-grammar §4.1).
+pub fn parse_pexpr_str(src: &str) -> Result<Spanned<PExpr>, Diagnostic> {
+    let tokens = lexer::lex(src)?;
+    let mut p = Parser {
+        tokens,
+        pos: 0,
+        map: LineMap::new(src),
+        src_len: src.len(),
+        defname: String::new(),
+    };
+    let expr = p.parse_pexpr()?;
+    if p.tok(0).is_some() {
+        return Err(p.err_expected("end of expression"));
+    }
+    Ok(expr)
+}
+
 /// Parses a standalone type (builtin signature table, tests).
 pub fn parse_type_str(src: &str) -> Result<Spanned<Type>, Diagnostic> {
     let tokens = lexer::lex(src)?;

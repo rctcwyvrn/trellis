@@ -67,6 +67,17 @@ fn print_preserves_meaning_on_the_corpus() {
     }
 }
 
+/// Regression (found by the generated-programs fixpoint property,
+/// 2026-08-26): `Neg(Neg(x))` must print `-(-x)` — attached `--`
+/// lexes as a comment and the printed text stops reparsing.
+#[test]
+fn negated_negation_parenthesizes() {
+    let once = canonicalize("f : I64\nf = - - 1\n", "f.soil").unwrap();
+    assert!(once.contains("-(-1)"), "{once}");
+    let twice = canonicalize(&once, "f.soil").unwrap();
+    assert_eq!(once, twice);
+}
+
 mod properties {
     use proptest::prelude::*;
 

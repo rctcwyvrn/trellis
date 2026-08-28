@@ -69,10 +69,11 @@ tags: [parser]
   `soil-type`, `invariant`, `exports`, `allow`.
 - `test_hash`: `test`, `property`, `cram`, `reference` (the reference is an
   oracle; changing it re-runs differential tests, not the lowering).
-- `prose_hash`: everything else in the file, including `tags` and
-  `decisions` (a changed decision flags lowerings in scope
-  `review-suggested` rather than invalidating them — whether that is
-  strong enough is an open question, §9).
+- `prose_hash`: everything else in the file, including `tags`.
+- `decisions` blocks are in **none of the three** (resolved 2026-08-24,
+  §9): each entry is hashed individually (label → hash of the entry's
+  text, rejected lines included) into the lock, and invalidation
+  follows the reliance edges of §5.2 rather than any whole-file hash.
 
 ---
 
@@ -197,7 +198,10 @@ Generators are derived from the binder's type; a `where` filter is a
 generator constraint, satisfied by constrained generation rather than
 rejection sampling. Properties may call the function under test, the
 prelude, the reference implementation, and `accepted` definitions
-(design §4.5).
+(design §4.5). (Toolchain status, resolved 2026-08-24: the v1 runner
+generates randomly from the type and **refuses** `where` filters with
+a structured error — constrained generation arrives with the solver,
+plan 05; design §10. The format is unchanged.)
 
 ### 3.5 `cram`
 
@@ -269,6 +273,16 @@ ctor    ::= Ctor [ type ]
 A variant carries at most one payload of any type; multi-field payloads are
 inline records, since there are no positional products (design §3.13) —
 `Ok a`, but `BadCell { index : U64, text : Utf8 }`.
+
+**Sum vs alias (resolved 2026-08-28, surfaced by the daemon's
+parser):** the grammar above makes `type Path = Utf8` ambiguous — a
+one-variant sum or an alias — and `type W = MkW Utf8` ambiguous
+between a one-variant sum and an applied-type alias. The rule: a body
+is a **sum** iff it begins with `|` or contains a top-level `|`;
+otherwise it is an alias (or record/opaque by its leading token). A
+single-variant sum therefore must write the leading `|`
+(`type W = | MkW Utf8`) — one way to write each thing, and the
+kernel's `type Path = Utf8` keeps its alias reading.
 Derivation strategies (design §3.7): structural is the default; an `opaque`
 body selects the opaque strategy; the `ignored` field marker selects the
 ignored strategy for that field.
@@ -333,6 +347,45 @@ timestamps: all timestamps are UTC seconds (I64)
 errors: Result everywhere; panic only via refinement-checked prelude calls
 ```
 ````
+
+**Hashing and invalidation (resolved 2026-08-24; design §4.3).**
+Decisions are neither prose nor formal — forcing them into that binary
+meant a one-word edit either re-lowered the world (formal semantics) or
+flagged the whole scope `review-suggested` (prose semantics), and
+scope-wide flags that are usually noise train the user to ignore the
+one that matters. Decisions are therefore their own hash class,
+invalidated by **reliance** — the same shape the lock already uses for
+callee edges:
+
+- Each entry is hashed individually; **labels are identity** (renaming
+  a label is remove + add).
+- Every lowering **cites the decisions it applied**: the lowerer's
+  completion output carries the list of labels (possibly empty),
+  recorded in the lock as `{scope, label, hash}` edges beside the call
+  edges, together with a hash over the entry *labels* in scope
+  (membership, not text). Lock shapes in lock-schema §3.
+- An **edited or removed** entry flags only the lowerings whose edges
+  cite it; an **added** entry flags everything in scope once, via the
+  membership hash — a new rule is new information to every existing
+  lowering. Staleness is derived by hash comparison, never stored
+  (lock-schema §8).
+- The human may reclassify a detected change as **editorial** (typo,
+  wording): the daemon re-stamps the recorded hashes and nothing is
+  flagged. The human already owns the spec, the tests, and `accepted`;
+  trusting them to say "this edit changed no meaning" is inside the
+  trust model.
+- Whatever still flags is cleared by the **triage sweep**: a batched
+  daemon job that hands an agent the entry's diff and asks, per
+  flagged lowering, whether the existing Soil still conforms — the
+  prose-stale auto-clear of design §6.2, batched. It costs tokens,
+  never a re-lowering.
+
+Citation is self-reported by the lowerer, so an uncited-but-influential
+decision under-flags — the same drift class the prose tier already
+accepts (flag-and-confirm; tests remain the trust root). Rejected:
+pure prose semantics (review-suggested fatigue at project scale) and
+formal semantics (a typo re-lowers the world) — both scale with
+project size, where reliance edges scale with actual use.
 
 ---
 
@@ -414,6 +467,35 @@ a block they remove the marker; an unmarked formal block is human-authored
 and therefore pinned — the agent may not change it, only raise `ask_human`.
 The lock records provenance per block alongside the hashes.
 
+The marker is part of the block's hashed info string (impl plan 03
+§8.5; resolved 2026-08-28): removing `@agent` — even without touching
+the content — moves the block's class hash and re-verifies the
+lowering. Taking ownership of a block is a formal event, not a
+metadata flip; the conservative cost of one re-verification per
+adoption was chosen over content-only hashing.
+
+**Answer write-back (resolved 2026-08-24; design §4.6, impl plan 03
+§9.7).** A function-scoped `ask_human` answer is written into the `.tr`
+under a `## Clarifications` heading (created at the end of the file on
+first use), one Q/A pair per entry:
+
+```
+## Clarifications
+
+- **Q:** should `parse` accept trailing whitespace?
+  **A:** yes — trim before parsing.
+```
+
+This is ordinary prose — hashed under `prose_hash`, visible in the
+diff the human already reviews, and included in the bundle like the
+rest of the prose. Rule-shaped answers go to a `decisions` block
+instead (§5.2), never here. The IDE later offers a fold-into-prose
+action: an agent rewrites the relevant prose to absorb a Q/A pair and
+deletes it — an ordinary prose edit under the same hashing. Rejected:
+human-placed inline answers as the default (the round-trip stops
+being automatic) and a reserved `qa` block (a new mini-language for
+what prose already expresses).
+
 ---
 
 ## 9. Open questions raised by this prototype
@@ -424,8 +506,11 @@ range, §7), generator strategy (constrained, §3.4), the `cram` grammar
 (§3.5), and property-only files (valid, §6) — have been resolved and folded
 into the sections above.
 
-Newly open (2026-08-23, with the `decisions` adoption): decisions hash
-under `prose_hash`, so a changed decision only flags lowerings in scope
-as `review-suggested` (§1) — but a decision is closer to a spec than to
-prose, and forcing re-lowering (formal-hash semantics) may be the honest
-rule. Revisit when the daemon's bundle packer exists (plan 03).
+The decisions-hash question (newly open 2026-08-23 with the `decisions`
+adoption: prose-class flagging vs formal-class invalidation) was
+*resolved 2026-08-24* as neither: decisions are their own per-entry
+hash class, invalidated by reliance edges, with editorial
+reclassification and the triage sweep. Both binary options scaled with
+project size (scope-wide `review-suggested` fatigue, or a typo
+re-lowering the world); reliance scales with actual use. Rules and
+rationale in §5.2; lock shapes in lock-schema §3/§8; design §4.3.
