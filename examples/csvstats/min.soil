@@ -1,0 +1,12 @@
+min : (xs : List F64) -> panic F64
+min xs =
+  let rec go = fun i best ->
+    if i == len xs
+    then best
+    else
+      let x = nth xs i in
+      if x < best
+      then go (i + 1) x
+      else go (i + 1) best
+  in
+  go 1 (nth xs 0)

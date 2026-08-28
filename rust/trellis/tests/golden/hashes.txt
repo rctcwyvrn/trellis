@@ -2,6 +2,14 @@ csvstats/_module.tr
   formal sha256:4f523045c3a5c366ee4d455053150edda848a78e66028785b13f9a7dedfda790
   test   -
   prose  sha256:2f63d194d8efb71a369380c82d2860d90003fb4fa1cee5f9346308d5fbaddc8b
+csvstats/len.tr
+  formal sha256:fc8d3ca85e0857e4d51f9a6321d5eb0fe018abaa80edb5b26651e828b82c9676
+  test   sha256:0be29e6af54d8c6d8ac77a500e2b62c042709894f2f438012e9b9ef3c831c428
+  prose  sha256:92971aa88a305e1aa8622438aaa4eb6545b73aa546c33692562e0a85fc47cae0
+csvstats/max.tr
+  formal sha256:14768230817b5448cbfe2352fde71a20164c9de630939f7b89241bddcdf1c133
+  test   sha256:685ba791af856398f7b87c0b33e1aaebaf50be825585eea2f214219cd627b0f4
+  prose  sha256:ee8d07459eefea6850efcecf0e22c45ee9335e366f5eb47f7361a3df4a3c4dc5
 csvstats/mean.tr
   formal sha256:0b80b48c5e7898046b79974621f2635926333619a230f31bf91bfdef8123f9d9
   test   sha256:a438259a72636dfab91299124207c83c2e6584b9b23815efbfa75bb9d03488e3
@@ -10,8 +18,16 @@ csvstats/median.tr
   formal sha256:0d26f62b2353c4cd4ae8daea09298d8f7cb7faf02ae311d9a3ebd227d0fc9d75
   test   sha256:a38ac641e123d5e77f1ae9cfe41fc70e5284d5574de9ba43db10ac6f42982aaf
   prose  sha256:1ef376f8d6a4ba163acfaab673a1b392d0c6abb9ac85de84f7e263c2fcbca144
+csvstats/min.tr
+  formal sha256:b739ac670cab71ed92a105872cba23aadc4a8495d119fc36046d4404be75a84f
+  test   sha256:d4d2c24e1b5bbf5c60e18efbdf409ebad78f1fac57d00fa900c0cc70a7e86bb1
+  prose  sha256:2afbea5c89e21a99ba58b84f569daa0bb4d00fe35841f0c3d68681d4b012f004
+csvstats/nth.tr
+  formal sha256:a95638aeff13614eb303f98a9fe6aa5ebfb8ff20488b87aae4cafd15914b6a9c
+  test   sha256:5cbd9552e2038d0a2158323eca17f2441deefcae5dac698d8dcec5773ecf2fc2
+  prose  sha256:3b704f3b0d7db2cf05fd2242ae3a6126661b75cddceed65ad2a756c4145d90b1
 csvstats/parse_error.tr
-  formal sha256:8dc78a066b41d28aeadaa32e351d994803a3fb421a94fc9fc27642d7f4707248
+  formal sha256:3e2c0ed4cc4142481c18864ac2364e54a1c57743a75cabf2ebe9d5d2818b286f
   test   -
   prose  sha256:8d1c7fd0f80c9e6fbd071b95b4bf452d08d6dc075065e4c455a54c4e5a1d353b
 csvstats/parse_row.tr
@@ -22,11 +38,29 @@ csvstats/row.tr
   formal sha256:36af0f58e2bd320599cdcced097bf362d82842a7000b7fcf878ca04005cdd5f8
   test   -
   prose  sha256:5ec14fb41210d70182cc23ad03838d6bb5d9694791c16d1cbdfd00db919a4d16
+csvstats/sort.tr
+  formal sha256:ab2a53be5353cc0ae39b856350b49985c8a4cda2e3a429dd423b101006fcb694
+  test   sha256:86528daeca409070e169481c1633a44d44bfc2a40690f9e1f6f464aa15f18332
+  prose  sha256:ed88e39adcadf3a4167d61dd0bea75c38371696c0c5e4849e47133971749f878
 read_file.tr
   formal sha256:c14546862714dbf1a62bf8d6ea285ced0cf0af805af683145d0d672d8da93740
   test   sha256:8a2f586db0ce45d8b204b5d3f49b78caf317471794cd802a5f7f572626f749b0
   prose  sha256:8791ab8d0ceb5afe62bcc4c290f25439075c65b7cec4ddef8bd705153b94b2dd
+csvstats/_private.soil
+  soil   sha256:27843d44003ba09eb3a47472220d1fb80be4cbde2e5ff38ea11fe9407bbd667d
+csvstats/len.soil
+  soil   sha256:75ec04adebfb1d0ea9c67b7c1f279afc33527ecbb4cac5643a8c4938e9ebacc9
+csvstats/max.soil
+  soil   sha256:6b80818452dd7c25a3f4fa968c6154e0409669377317cffff90429bf41eef74c
 csvstats/median.soil
-  soil   sha256:945657e2cd7cf3bc1e40ea9977c433f6b2cb36c4008b8fcae25e0133e3730096
+  soil   sha256:4fb6e02eac633c1b408627f8dfecb9e61c1dc328c4bcd4489591ba2dee8ea99b
+csvstats/min.soil
+  soil   sha256:a867645b7713aa61aaad1314e0ef6d5025f8b434a7d8460ff7d37e7ffab05f3f
+csvstats/nth.soil
+  soil   sha256:aa79004252b8dd987ea0f57a5e81c5565aec02a0fd872c9585ab06a1abf4bf8b
+csvstats/parse_row.soil
+  soil   sha256:99d10da063aa19a443559cc62d24cb4a0a0de836c880721d0444021b3ccc9fa3
+csvstats/sort.soil
+  soil   sha256:1529d13cfca38807dd2c40c8c791e3493fe3b0798aa8193174b9acf41de88337
 read_file.soil
   soil   sha256:2e0ffbbb77125d02ac50d0bd7e5b18455501251dec7df7f38590cc74f5c3a851

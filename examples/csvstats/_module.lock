@@ -2,13 +2,13 @@
   "lock_format": 1,
   "name": "csvstats",
   "kind": "module",
-  "versions": { "trellis": "0.1", "soil": "0.1" },
+  "versions": { "trellis": "0.1.0", "soil": "0.1" },
   "spec": {
     "provenance": "human",
     "hashes": {
-      "formal": "sha256:1c9be044",
+      "formal": "sha256:4f523045c3a5c366ee4d455053150edda848a78e66028785b13f9a7dedfda790",
       "test": null,
-      "prose": "sha256:73a0d5f2"
+      "prose": "sha256:2f63d194d8efb71a369380c82d2860d90003fb4fa1cee5f9346308d5fbaddc8b"
     },
     "prose_state": "fresh",
     "blocks": [

@@ -105,9 +105,10 @@ Top-level keys, in order:
   future model routing. Costs, retries, and timings live in the gitignored
   `f.log`, not here (design §4.6). Present only when an agent ran:
   hand-written entries (`human-verified`, `hand-edited` without a prior
-  agent run) carry the `Option` encoding's `None` (resolved 2026-08-28
-  with the examples-regeneration policy — a lock must not assert a
-  lowering event that never happened).
+  agent run) carry plain `null` — the lock's own null convention, as
+  with an absent `lowering` or `test` hash (resolved 2026-08-28 with
+  the examples-regeneration policy — a lock must not assert a lowering
+  event that never happened).
 - `private_helpers`: the `_private.soil` definitions this lowering owns
   (design §4.2); the manifest derives its `soil-private` nodes from these,
   and a helper with no remaining owner is garbage-collected.

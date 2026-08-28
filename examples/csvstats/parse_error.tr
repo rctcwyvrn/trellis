@@ -10,5 +10,5 @@ the offending cell and its raw text.
 ```soil-type
 type ParseError =
   | EmptyLine
-  | BadCell { index : U64, text : Utf8 }
+  | BadCell { index : I64, text : Utf8 }
 ```

@@ -41,35 +41,36 @@ fn read_file_reference_sets() {
     assert!(refs.privates.is_empty());
 }
 
-const LEN: (&str, &str) = (
-    "stubs/len.soil",
-    "len : List F64 -> I64\nlen xs = list_len xs\n",
-);
-const NTH: (&str, &str) = (
-    "stubs/nth.soil",
-    "nth : List F64 -> I64 -> panic F64\nnth xs i = list_nth xs i\n",
-);
-const SORT_BY: (&str, &str) = (
-    "csvstats/sort_by.soil",
-    "sort_by : (f : F64 -> F64) -> List F64 -> List F64\nsort_by f xs = xs\n",
-);
-
 #[test]
 fn median_matches_the_contract_example() {
-    let median = std::fs::read_to_string(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/../../examples/csvstats/median.soil"
-    ))
-    .unwrap();
+    // Real example callees since plan 03 step 5 (the examples root is
+    // closed over its call graph; `sort_by` became the first-order
+    // `sort` — contract §8.3's illustration updated with it).
+    let example = |rel: &str| {
+        std::fs::read_to_string(format!(
+            "{}/../../examples/{rel}",
+            env!("CARGO_MANIFEST_DIR")
+        ))
+        .unwrap()
+    };
+    let len = example("csvstats/len.soil");
+    let nth = example("csvstats/nth.soil");
+    let sort = example("csvstats/sort.soil");
+    let median = example("csvstats/median.soil");
     let out = run(
         "[]",
-        &[LEN, NTH, SORT_BY, ("csvstats/median.soil", &median)],
+        &[
+            ("csvstats/len.soil", &len),
+            ("csvstats/nth.soil", &nth),
+            ("csvstats/sort.soil", &sort),
+            ("csvstats/median.soil", &median),
+        ],
     )
     .unwrap();
     let refs = &out.defs[3].refs;
-    // The contract §8.3 example, verbatim — cross-module bare refs are
-    // legal (spec §5.10), and predicates contribute nothing.
-    assert_eq!(refs.defs, ["len", "nth", "sort_by"]);
+    // The contract §8.3 example — cross-module bare refs are legal
+    // (spec §5.10), and predicates contribute nothing.
+    assert_eq!(refs.defs, ["len", "nth", "sort"]);
     assert_eq!(refs.types, ["F64", "List"]);
     assert!(refs.builtins.is_empty());
 }

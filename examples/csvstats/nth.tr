@@ -1,0 +1,25 @@
+---
+name: nth
+---
+
+# nth
+
+The cell at a zero-based index — a thin wrapper over the `list_nth`
+primitive. Indexing outside the list panics; callers guard with `len`.
+
+```soil-sig
+nth : (xs : List F64) -> (i : I64) -> panic F64
+```
+
+```requires
+in-bounds: i >= 0 and i < len(xs)
+```
+
+```test picks
+([1.0, 2.5, 3.0], 0) => 1.0
+([1.0, 2.5, 3.0], 2) => 3.0
+```
+
+```test out-of-range
+([1.0], 5) => panic
+```

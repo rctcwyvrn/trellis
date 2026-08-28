@@ -1,0 +1,9 @@
+# The examples Soil root (design §7.2): the normative format
+# illustrations, kept round-tripping through the daemon (plan 03).
+
+[toolchain]
+trellis = "0.1.0"
+soil0_cli = 1
+
+[tags]
+parser = "the parsing subsystem"

@@ -1,0 +1,24 @@
+---
+name: min
+---
+
+# min
+
+The smallest cell of a non-empty list of floats.
+
+```soil-sig
+min : (xs : List F64) -> panic F64
+```
+
+```requires
+non-empty: len(xs) > 0
+```
+
+```test smallest
+([2.0, 1.0, 3.0]) => 1.0
+([5.0]) => 5.0
+```
+
+```test empty
+([]) => panic
+```

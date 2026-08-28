@@ -67,19 +67,28 @@ fn median_program_facts() {
         "/../../examples/csvstats/median.soil"
     ))
     .unwrap();
+    // Real example callees since plan 03 step 5 (the examples root is
+    // closed over its call graph). Declared signatures stay the
+    // modular truth, so median's own obligations are unchanged.
+    let len = std::fs::read_to_string(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../examples/csvstats/len.soil"
+    ))
+    .unwrap();
+    let nth = std::fs::read_to_string(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../examples/csvstats/nth.soil"
+    ))
+    .unwrap();
+    let sort = std::fs::read_to_string(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../examples/csvstats/sort.soil"
+    ))
+    .unwrap();
     let files = [
-        (
-            "stubs/len.soil",
-            "len : List F64 -> I64\nlen xs = list_len xs\n",
-        ),
-        (
-            "stubs/nth.soil",
-            "nth : List F64 -> I64 -> panic F64\nnth xs i = list_nth xs i\n",
-        ),
-        (
-            "csvstats/sort_by.soil",
-            "sort_by : (f : F64 -> F64) -> List F64 -> List F64\nsort_by f xs = xs\n",
-        ),
+        ("csvstats/len.soil", len.as_str()),
+        ("csvstats/nth.soil", nth.as_str()),
+        ("csvstats/sort.soil", sort.as_str()),
         ("csvstats/median.soil", median.as_str()),
     ];
     let out = run("[]", &files).unwrap();

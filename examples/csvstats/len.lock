@@ -1,0 +1,45 @@
+{
+  "lock_format": 1,
+  "name": "len",
+  "kind": "function",
+  "versions": { "trellis": "0.1.0", "soil": "0.1" },
+  "spec": {
+    "provenance": "human",
+    "hashes": {
+      "formal": "sha256:fc8d3ca85e0857e4d51f9a6321d5eb0fe018abaa80edb5b26651e828b82c9676",
+      "test": "sha256:0be29e6af54d8c6d8ac77a500e2b62c042709894f2f438012e9b9ef3c831c428",
+      "prose": "sha256:92971aa88a305e1aa8622438aaa4eb6545b73aa546c33692562e0a85fc47cae0"
+    },
+    "prose_state": "fresh",
+    "blocks": [
+      { "block": "soil-sig", "author": "human" },
+      { "block": "ensures", "author": "human" },
+      { "block": "test counts", "author": "human" }
+    ],
+    "pinned": false,
+    "escape_hatches": []
+  },
+  "lowering": {
+    "soil_hash": "sha256:1d0db7042147887e451444fd609243b27aabb1fd18bfe3fb678823dc2f1e1d8e",
+    "provenance": "human-verified",
+    "provider": null,
+    "model": null,
+    "private_helpers": [],
+    "calls": [],
+    "decisions": {
+      "scope_hash": "sha256:af5570f5a1810b7af78caf4bc70a660f0df51e42baf91d4de5b2328de0e83dfc",
+      "applied": []
+    }
+  },
+  "checks": {
+    "types": "ok",
+    "termination": "verified",
+    "refinements": {
+      "non-negative": "runtime"
+    },
+    "holes": 0
+  },
+  "tests": [],
+  "oracles": [],
+  "accepted": false
+}

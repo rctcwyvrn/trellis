@@ -1,0 +1,49 @@
+{
+  "lock_format": 1,
+  "name": "max",
+  "kind": "function",
+  "versions": { "trellis": "0.1.0", "soil": "0.1" },
+  "spec": {
+    "provenance": "human",
+    "hashes": {
+      "formal": "sha256:14768230817b5448cbfe2352fde71a20164c9de630939f7b89241bddcdf1c133",
+      "test": "sha256:685ba791af856398f7b87c0b33e1aaebaf50be825585eea2f214219cd627b0f4",
+      "prose": "sha256:ee8d07459eefea6850efcecf0e22c45ee9335e366f5eb47f7361a3df4a3c4dc5"
+    },
+    "prose_state": "fresh",
+    "blocks": [
+      { "block": "soil-sig", "author": "human" },
+      { "block": "requires", "author": "human" },
+      { "block": "test largest", "author": "human" },
+      { "block": "test empty", "author": "human" }
+    ],
+    "pinned": false,
+    "escape_hatches": []
+  },
+  "lowering": {
+    "soil_hash": "sha256:f1f0592cfc4252ad457ddc102420eab6ed6f2a458c48585ddb6e96a508fea4bc",
+    "provenance": "human-verified",
+    "provider": null,
+    "model": null,
+    "private_helpers": [],
+    "calls": [
+      { "name": "len", "hash": "sha256:1d0db7042147887e451444fd609243b27aabb1fd18bfe3fb678823dc2f1e1d8e" },
+      { "name": "nth", "hash": "sha256:d32fd45ca339a7f7cc735e362a3e2621dbd451c2f732fc06f0de82e63e4a9c7c" }
+    ],
+    "decisions": {
+      "scope_hash": "sha256:af5570f5a1810b7af78caf4bc70a660f0df51e42baf91d4de5b2328de0e83dfc",
+      "applied": []
+    }
+  },
+  "checks": {
+    "types": "ok",
+    "termination": "unverified",
+    "refinements": {
+      "non-empty": "runtime"
+    },
+    "holes": 0
+  },
+  "tests": [],
+  "oracles": [],
+  "accepted": false
+}

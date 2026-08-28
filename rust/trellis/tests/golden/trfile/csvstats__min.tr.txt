@@ -1,0 +1,227 @@
+TrFile {
+    name: "min",
+    tags: [],
+    kind: Function,
+    frontmatter_len: 18,
+    name_span: 4..14,
+    has_prose: true,
+    blocks: [
+        Block {
+            id: "soil-sig",
+            lang: "soil-sig",
+            name: None,
+            xfail: false,
+            agent: false,
+            span: 76..126,
+            content: "min : (xs : List F64) -> panic F64\n",
+            payload: Sig(
+                Sig {
+                    name: "min",
+                    ty: Spanned {
+                        span: Span {
+                            start: 6,
+                            end: 34,
+                            line: 1,
+                            col: 7,
+                        },
+                        item: Arrow {
+                            param: Opt(
+                                Some(
+                                    Binder {
+                                        span: Span {
+                                            start: 7,
+                                            end: 9,
+                                            line: 1,
+                                            col: 8,
+                                        },
+                                        name: "xs",
+                                    },
+                                ),
+                            ),
+                            dom: Spanned {
+                                span: Span {
+                                    start: 12,
+                                    end: 20,
+                                    line: 1,
+                                    col: 13,
+                                },
+                                item: Con {
+                                    name: "List",
+                                    args: [
+                                        Spanned {
+                                            span: Span {
+                                                start: 17,
+                                                end: 20,
+                                                line: 1,
+                                                col: 18,
+                                            },
+                                            item: Con {
+                                                name: "F64",
+                                                args: [],
+                                            },
+                                        },
+                                    ],
+                                },
+                            },
+                            row: Row {
+                                effects: [
+                                    Panic,
+                                ],
+                                var: Opt(
+                                    None,
+                                ),
+                            },
+                            cod: Spanned {
+                                span: Span {
+                                    start: 31,
+                                    end: 34,
+                                    line: 1,
+                                    col: 32,
+                                },
+                                item: Con {
+                                    name: "F64",
+                                    args: [],
+                                },
+                            },
+                        },
+                    },
+                },
+            ),
+        },
+        Block {
+            id: "requires",
+            lang: "requires",
+            name: None,
+            xfail: false,
+            agent: false,
+            span: 128..166,
+            content: "non-empty: len(xs) > 0\n",
+            payload: Clauses(
+                [
+                    Clause {
+                        label: "non-empty",
+                        pred: Spanned {
+                            span: Span {
+                                start: 0,
+                                end: 11,
+                                line: 1,
+                                col: 1,
+                            },
+                            item: PCmp {
+                                op: Gt,
+                                lhs: Spanned {
+                                    span: Span {
+                                        start: 0,
+                                        end: 6,
+                                        line: 1,
+                                        col: 1,
+                                    },
+                                    item: PCallE {
+                                        name: "len",
+                                        args: [
+                                            Spanned {
+                                                span: Span {
+                                                    start: 4,
+                                                    end: 6,
+                                                    line: 1,
+                                                    col: 5,
+                                                },
+                                                item: PPath {
+                                                    root: "xs",
+                                                    fields: [],
+                                                },
+                                            },
+                                        ],
+                                    },
+                                },
+                                rhs: Spanned {
+                                    span: Span {
+                                        start: 10,
+                                        end: 11,
+                                        line: 1,
+                                        col: 11,
+                                    },
+                                    item: PLiteral {
+                                        lit: LInt {
+                                            digits: "0",
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
+            ),
+        },
+        Block {
+            id: "test smallest",
+            lang: "test",
+            name: Some(
+                "smallest",
+            ),
+            xfail: false,
+            agent: false,
+            span: 168..228,
+            content: "([2.0, 1.0, 3.0]) => 1.0\n([5.0]) => 5.0\n",
+            payload: Tests(
+                TestBlock {
+                    withs: [],
+                    cases: [
+                        TestCase {
+                            args: [
+                                Json(
+                                    Array [
+                                        Number(2.0),
+                                        Number(1.0),
+                                        Number(3.0),
+                                    ],
+                                ),
+                            ],
+                            outcome: Value(
+                                Number(1.0),
+                            ),
+                        },
+                        TestCase {
+                            args: [
+                                Json(
+                                    Array [
+                                        Number(5.0),
+                                    ],
+                                ),
+                            ],
+                            outcome: Value(
+                                Number(5.0),
+                            ),
+                        },
+                    ],
+                },
+            ),
+        },
+        Block {
+            id: "test empty",
+            lang: "test",
+            name: Some(
+                "empty",
+            ),
+            xfail: false,
+            agent: false,
+            span: 230..261,
+            content: "([]) => panic\n",
+            payload: Tests(
+                TestBlock {
+                    withs: [],
+                    cases: [
+                        TestCase {
+                            args: [
+                                Json(
+                                    Array [],
+                                ),
+                            ],
+                            outcome: Panic,
+                        },
+                    ],
+                },
+            ),
+        },
+    ],
+}

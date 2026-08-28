@@ -148,19 +148,22 @@ fn examples_pass_check() {
         "/../../examples/read_file.soil"
     ))
     .unwrap();
+    // The callees are real example definitions since plan 03 step 5
+    // (the examples root closed over its own call graph).
+    let example = |rel: &str| {
+        std::fs::read_to_string(format!(
+            "{}/../../examples/{rel}",
+            env!("CARGO_MANIFEST_DIR")
+        ))
+        .unwrap()
+    };
+    let len = example("csvstats/len.soil");
+    let nth = example("csvstats/nth.soil");
+    let sort = example("csvstats/sort.soil");
     assert!(run_check(&[
-        (
-            "stubs/len.soil",
-            "len : List F64 -> I64\nlen xs = list_len xs\n"
-        ),
-        (
-            "stubs/nth.soil",
-            "nth : List F64 -> I64 -> panic F64\nnth xs i = list_nth xs i\n"
-        ),
-        (
-            "csvstats/sort_by.soil",
-            "sort_by : (f : F64 -> F64) -> List F64 -> List F64\nsort_by f xs = xs\n"
-        ),
+        ("csvstats/len.soil", &len),
+        ("csvstats/nth.soil", &nth),
+        ("csvstats/sort.soil", &sort),
         ("csvstats/median.soil", &median),
     ])
     .is_ok());

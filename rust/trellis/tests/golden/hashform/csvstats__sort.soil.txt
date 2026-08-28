@@ -1,0 +1,24 @@
+sort : (xs : List F64) -> List F64
+sort %0 =
+  let rec %1 = fun %2 %3 ->
+    let %4 = list_len %3 in
+    let rec %5 = fun %6 %7 %8 ->
+      if %6 == %4
+      then
+        if %8
+        then %7
+        else list_append %7 %2
+      else
+        let %9 = list_nth %3 %6 in
+        if not %8 and %2 <= %9
+        then %5 (%6 + 1) (list_append (list_append %7 %2) %9) True
+        else %5 (%6 + 1) (list_append %7 %9) %8
+    in
+    %5 0 list_empty False
+  in
+  let rec %10 = fun %11 %12 ->
+    if %11 == list_len %0
+    then %12
+    else %10 (%11 + 1) (%1 (list_nth %0 %11) %12)
+  in
+  %10 0 list_empty

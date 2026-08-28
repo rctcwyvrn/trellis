@@ -1,0 +1,184 @@
+TrFile {
+    name: "len",
+    tags: [],
+    kind: Function,
+    frontmatter_len: 18,
+    name_span: 4..14,
+    has_prose: true,
+    blocks: [
+        Block {
+            id: "soil-sig",
+            lang: "soil-sig",
+            name: None,
+            xfail: false,
+            agent: false,
+            span: 169..213,
+            content: "len : (xs : List F64) -> I64\n",
+            payload: Sig(
+                Sig {
+                    name: "len",
+                    ty: Spanned {
+                        span: Span {
+                            start: 6,
+                            end: 28,
+                            line: 1,
+                            col: 7,
+                        },
+                        item: Arrow {
+                            param: Opt(
+                                Some(
+                                    Binder {
+                                        span: Span {
+                                            start: 7,
+                                            end: 9,
+                                            line: 1,
+                                            col: 8,
+                                        },
+                                        name: "xs",
+                                    },
+                                ),
+                            ),
+                            dom: Spanned {
+                                span: Span {
+                                    start: 12,
+                                    end: 20,
+                                    line: 1,
+                                    col: 13,
+                                },
+                                item: Con {
+                                    name: "List",
+                                    args: [
+                                        Spanned {
+                                            span: Span {
+                                                start: 17,
+                                                end: 20,
+                                                line: 1,
+                                                col: 18,
+                                            },
+                                            item: Con {
+                                                name: "F64",
+                                                args: [],
+                                            },
+                                        },
+                                    ],
+                                },
+                            },
+                            row: Row {
+                                effects: [],
+                                var: Opt(
+                                    None,
+                                ),
+                            },
+                            cod: Spanned {
+                                span: Span {
+                                    start: 25,
+                                    end: 28,
+                                    line: 1,
+                                    col: 26,
+                                },
+                                item: Con {
+                                    name: "I64",
+                                    args: [],
+                                },
+                            },
+                        },
+                    },
+                },
+            ),
+        },
+        Block {
+            id: "ensures",
+            lang: "ensures",
+            name: None,
+            xfail: false,
+            agent: false,
+            span: 215..255,
+            content: "non-negative: result >= 0\n",
+            payload: Clauses(
+                [
+                    Clause {
+                        label: "non-negative",
+                        pred: Spanned {
+                            span: Span {
+                                start: 0,
+                                end: 11,
+                                line: 1,
+                                col: 1,
+                            },
+                            item: PCmp {
+                                op: Ge,
+                                lhs: Spanned {
+                                    span: Span {
+                                        start: 0,
+                                        end: 6,
+                                        line: 1,
+                                        col: 1,
+                                    },
+                                    item: PPath {
+                                        root: "result",
+                                        fields: [],
+                                    },
+                                },
+                                rhs: Spanned {
+                                    span: Span {
+                                        start: 10,
+                                        end: 11,
+                                        line: 1,
+                                        col: 11,
+                                    },
+                                    item: PLiteral {
+                                        lit: LInt {
+                                            digits: "0",
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
+            ),
+        },
+        Block {
+            id: "test counts",
+            lang: "test",
+            name: Some(
+                "counts",
+            ),
+            xfail: false,
+            agent: false,
+            span: 257..308,
+            content: "([]) => 0\n([1.0, 2.5, 3.0]) => 3\n",
+            payload: Tests(
+                TestBlock {
+                    withs: [],
+                    cases: [
+                        TestCase {
+                            args: [
+                                Json(
+                                    Array [],
+                                ),
+                            ],
+                            outcome: Value(
+                                Number(0),
+                            ),
+                        },
+                        TestCase {
+                            args: [
+                                Json(
+                                    Array [
+                                        Number(1.0),
+                                        Number(2.5),
+                                        Number(3.0),
+                                    ],
+                                ),
+                            ],
+                            outcome: Value(
+                                Number(3),
+                            ),
+                        },
+                    ],
+                },
+            ),
+        },
+    ],
+}

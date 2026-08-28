@@ -1,0 +1,22 @@
+---
+name: sort
+---
+
+# sort
+
+Sorts a list of floats into ascending order (insertion sort). Duplicates
+are kept; the result is a permutation of the input.
+
+```soil-sig
+sort : (xs : List F64) -> List F64
+```
+
+```ensures
+length-preserved: len(result) == len(xs)
+```
+
+```test orders
+([3.0, 1.0, 2.0]) => [1.0, 2.0, 3.0]
+([]) => []
+([2.0, 1.0, 1.0]) => [1.0, 1.0, 2.0]
+```

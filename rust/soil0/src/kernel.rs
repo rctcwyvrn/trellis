@@ -34,6 +34,11 @@ pub const BUILTIN_SIGS: &[(&str, &str)] = &[
     ("fake_rand", "U64 -> Rand"),
     ("utf8_decode", "Bytes -> Result Utf8 Utf8Error"),
     ("utf8_encode", "Utf8 -> Bytes"),
+    // v1.3 (2026-08-28): the string primitives — the list-primitives
+    // argument applied to Utf8 (contract §11).
+    ("utf8_split", "Utf8 -> Utf8 -> List Utf8"),
+    ("utf8_trim", "Utf8 -> Utf8"),
+    ("utf8_parse_f64", "Utf8 -> Option F64"),
     ("unit", "Unit"),
     ("list_len", "List a -> I64"),
     ("list_nth", "List a -> I64 -> panic a"),

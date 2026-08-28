@@ -1,0 +1,24 @@
+{
+  "lock_format": 1,
+  "name": "mean",
+  "kind": "function",
+  "versions": { "trellis": "0.1.0", "soil": "0.1" },
+  "spec": {
+    "provenance": "human",
+    "hashes": {
+      "formal": "sha256:0b80b48c5e7898046b79974621f2635926333619a230f31bf91bfdef8123f9d9",
+      "test": "sha256:a438259a72636dfab91299124207c83c2e6584b9b23815efbfa75bb9d03488e3",
+      "prose": "sha256:c7e7127a7cec0b406aced68efb65bfd364f917e9b832d4430eefbc5c57a9e8c8"
+    },
+    "prose_state": "fresh",
+    "blocks": [
+      { "block": "test simple", "author": "human" }
+    ],
+    "pinned": false,
+    "escape_hatches": []
+  },
+  "lowering": null,
+  "tests": [],
+  "oracles": [],
+  "accepted": false
+}

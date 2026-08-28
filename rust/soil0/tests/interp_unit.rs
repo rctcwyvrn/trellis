@@ -147,3 +147,54 @@ fn holes_refuse_to_run() {
     let err = run(&[f], "f", "[1]").unwrap_err();
     assert!(err.starts_with("unfilled-hole"), "{err}");
 }
+
+#[test]
+fn utf8_string_primitives() {
+    // v1.3 (contract §11): split / trim / parse_f64.
+    let split = (
+        "a/sp.soil",
+        "sp : Utf8 -> Utf8 -> List Utf8\nsp sep s = utf8_split sep s\n",
+    );
+    assert_eq!(
+        run(&[split], "sp", r#"[",","1.0,2.5,3.0"]"#).unwrap(),
+        r#"["1.0","2.5","3.0"]"#
+    );
+    // n separators yield n+1 cells; empty input is one empty cell.
+    assert_eq!(run(&[split], "sp", r#"[",",""]"#).unwrap(), r#"[""]"#);
+    assert_eq!(
+        run(&[split], "sp", r#"[",","a,,b"]"#).unwrap(),
+        r#"["a","","b"]"#
+    );
+    // Empty separator: the whole string as one cell (pinned).
+    assert_eq!(run(&[split], "sp", r#"["","ab"]"#).unwrap(), r#"["ab"]"#);
+
+    let trim = ("a/tr.soil", "tr : Utf8 -> Utf8\ntr s = utf8_trim s\n");
+    assert_eq!(run(&[trim], "tr", r#"["  4.0 \t"]"#).unwrap(), r#""4.0""#);
+    assert_eq!(run(&[trim], "tr", r#"[""]"#).unwrap(), r#""""#);
+
+    let parse = (
+        "a/pf.soil",
+        "pf : Utf8 -> Option F64\npf s = utf8_parse_f64 s\n",
+    );
+    assert_eq!(
+        run(&[parse], "pf", r#"["2.5"]"#).unwrap(),
+        r#"{"tag":"Some","value":2.5}"#
+    );
+    assert_eq!(
+        run(&[parse], "pf", r#"["-42"]"#).unwrap(),
+        r#"{"tag":"Some","value":-42.0}"#
+    );
+    // No exponents, no underscores, no junk (contract §11 grammar).
+    for bad in ["1e3", "1_000", "x", "", ".", "1.", ".5", "--1", "1.2.3"] {
+        assert_eq!(
+            run(
+                &[parse],
+                "pf",
+                &format!("[{}]", serde_json::to_string(bad).unwrap())
+            )
+            .unwrap(),
+            r#"{"tag":"None"}"#,
+            "{bad} must not parse"
+        );
+    }
+}

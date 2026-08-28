@@ -1291,6 +1291,30 @@ fn utf8_of(v: &Value) -> Result<String, SoilError> {
     }
 }
 
+fn option_value(i: &I, v: Option<Value>) -> Result<Value, SoilError> {
+    Ok(Value::Sum(Ref::new(SumVal {
+        type_id: i.erased_id("Option")?,
+        variant: u32::from(v.is_some()),
+        payload: v,
+    })))
+}
+
+/// Exactly `-? digits [ "." digits ]` (contract §11, v1.3): no
+/// exponent, no underscores — this is data, not source. The grammar is
+/// validated here so `str::parse`'s wider acceptance never leaks.
+fn parse_plain_f64(s: &str) -> Option<f64> {
+    let rest = s.strip_prefix('-').unwrap_or(s);
+    let (int_part, frac) = match rest.split_once('.') {
+        Some((i, f)) => (i, Some(f)),
+        None => (rest, None),
+    };
+    let all_digits = |t: &str| !t.is_empty() && t.bytes().all(|b| b.is_ascii_digit());
+    if !all_digits(int_part) || !frac.is_none_or(all_digits) {
+        return None;
+    }
+    s.parse::<f64>().ok()
+}
+
 pub fn builtin_value(i: &I, name: &str) -> Result<Value, SoilError> {
     let ii = i.clone();
     Ok(match name {
@@ -1437,6 +1461,32 @@ pub fn builtin_value(i: &I, name: &str) -> Result<Value, SoilError> {
         "utf8_encode" => Value::Closure(Ref::new(Closure::native(move |args| {
             let s = utf8_of(&args[0])?;
             Ok(Value::Bytes(Ref::from(s.into_bytes())))
+        }))),
+        // v1.3 string primitives (contract §11).
+        "utf8_split" => curry2(move |sep, s| {
+            let sep = utf8_of(&sep)?;
+            let s = utf8_of(&s)?;
+            let cells: Vec<Value> = if sep.is_empty() {
+                // Pinned: an empty separator yields the whole string
+                // as one cell (total beats a panic row here).
+                vec![Value::Utf8(Ref::from(s.as_str()))]
+            } else {
+                s.split(sep.as_str())
+                    .map(|cell| Value::Utf8(Ref::from(cell)))
+                    .collect()
+            };
+            Ok(Value::List(Ref::new(cells)))
+        }),
+        "utf8_trim" => Value::Closure(Ref::new(Closure::native(move |args| {
+            let s = utf8_of(&args[0])?;
+            // ASCII whitespace only, pinned (contract §11).
+            Ok(Value::Utf8(Ref::from(
+                s.trim_matches(|c| matches!(c, ' ' | '\t' | '\r' | '\n')),
+            )))
+        }))),
+        "utf8_parse_f64" => Value::Closure(Ref::new(Closure::native(move |args| {
+            let s = utf8_of(&args[0])?;
+            option_value(&ii, parse_plain_f64(&s).map(Value::F64))
         }))),
         "list_len" => Value::Closure(Ref::new(Closure::native(move |args| {
             let Value::List(l) = &args[0] else {

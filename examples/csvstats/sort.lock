@@ -1,0 +1,45 @@
+{
+  "lock_format": 1,
+  "name": "sort",
+  "kind": "function",
+  "versions": { "trellis": "0.1.0", "soil": "0.1" },
+  "spec": {
+    "provenance": "human",
+    "hashes": {
+      "formal": "sha256:ab2a53be5353cc0ae39b856350b49985c8a4cda2e3a429dd423b101006fcb694",
+      "test": "sha256:86528daeca409070e169481c1633a44d44bfc2a40690f9e1f6f464aa15f18332",
+      "prose": "sha256:ed88e39adcadf3a4167d61dd0bea75c38371696c0c5e4849e47133971749f878"
+    },
+    "prose_state": "fresh",
+    "blocks": [
+      { "block": "soil-sig", "author": "human" },
+      { "block": "ensures", "author": "human" },
+      { "block": "test orders", "author": "human" }
+    ],
+    "pinned": false,
+    "escape_hatches": []
+  },
+  "lowering": {
+    "soil_hash": "sha256:254a76b1c427e27822c063b547573303a74a81124ed7afecd381adf9c5647fd9",
+    "provenance": "human-verified",
+    "provider": null,
+    "model": null,
+    "private_helpers": [],
+    "calls": [],
+    "decisions": {
+      "scope_hash": "sha256:af5570f5a1810b7af78caf4bc70a660f0df51e42baf91d4de5b2328de0e83dfc",
+      "applied": []
+    }
+  },
+  "checks": {
+    "types": "ok",
+    "termination": "unverified",
+    "refinements": {
+      "length-preserved": "runtime"
+    },
+    "holes": 0
+  },
+  "tests": [],
+  "oracles": [],
+  "accepted": false
+}

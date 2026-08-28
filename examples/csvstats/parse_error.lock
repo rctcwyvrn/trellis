@@ -1,0 +1,27 @@
+{
+  "lock_format": 1,
+  "name": "ParseError",
+  "kind": "type",
+  "versions": { "trellis": "0.1.0", "soil": "0.1" },
+  "spec": {
+    "provenance": "human",
+    "hashes": {
+      "formal": "sha256:3e2c0ed4cc4142481c18864ac2364e54a1c57743a75cabf2ebe9d5d2818b286f",
+      "test": null,
+      "prose": "sha256:8d1c7fd0f80c9e6fbd071b95b4bf452d08d6dc075065e4c455a54c4e5a1d353b"
+    },
+    "prose_state": "fresh",
+    "blocks": [
+      { "block": "soil-type", "author": "human" }
+    ],
+    "pinned": false,
+    "escape_hatches": []
+  },
+  "checks": {
+    "types": "ok",
+    "invariants": {}
+  },
+  "tests": [],
+  "cycle_hash": null,
+  "accepted": false
+}

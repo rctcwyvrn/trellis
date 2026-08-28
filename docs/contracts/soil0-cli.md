@@ -1,14 +1,18 @@
 # The `soil0` CLI — Oracle Contract
 
-*Status: **frozen — contract v1.2** (v1 approved 2026-08-22; amended to
+*Status: **frozen — contract v1.3** (v1 approved 2026-08-22; amended to
 v1.1 on 2026-08-23 with the agentlanguages-survey adoptions — typed
 holes: the `Hole` expression, `checks.holes`, the `unfilled-hole` code,
 `run`/`test` refusal; and the reserved `print` command for the canonical
 printer, arriving with impl step 11; amended to v1.2 on 2026-08-24,
 resolving §13.5 for the daemon's env generator — `VariantD.fields` for
-inline-record variant payloads, §6. The amendments are additive: v1
-outputs are byte-identical for hole-free programs, v1.1 env files
-decode unchanged, and `soil0_cli` stays `1` for additive amendments.) This document is the compatibility
+inline-record variant payloads, §6; amended to v1.3 on 2026-08-28 with
+three `Utf8` builtins, §11 — the list-primitives argument applied to
+strings: nothing string-shaped was writable, and the examples' `parse_row`
+needs to exist. The amendments are additive: v1 outputs are
+byte-identical for hole-free programs, v1.1 env files decode unchanged,
+programs not using the new builtins are unaffected, and `soil0_cli`
+stays `1` for additive amendments.) This document is the compatibility
 contract of the `soil0` binary, the format every differential oracle
 for `soilc` (plan 05) compares against, and the surface the daemon
 (plan 03) drives. Changing anything here is a contract change requiring
@@ -350,7 +354,7 @@ Success: per-definition **reference sets** — the computed import set
 (design §6.1) and the lock's call-edge data:
 
 ```json
-{"defs":[{"name":"median","refs":{"defs":["len","nth","sort_by"],
+{"defs":[{"name":"median","refs":{"defs":["len","nth","sort"],
   "types":["F64","List"],"builtins":[],"privates":[]}}]}
 ```
 
@@ -514,6 +518,9 @@ one is a new decision point.
 | `fake_rand` | `U64 -> Rand` | deterministic SplitMix64 stream from the seed (§11.1) |
 | `utf8_decode` | `Bytes -> Result Utf8 Utf8Error` | validate; `InvalidUtf8 { at }` gives the first bad byte offset |
 | `utf8_encode` | `Utf8 -> Bytes` | the underlying bytes |
+| `utf8_split` | `(sep : Utf8) -> Utf8 -> List Utf8` | v1.3: split on every occurrence of `sep` (separator-first for partial application); Python semantics — `n` separators yield `n+1` cells, so the empty string yields `[""]`; an **empty separator yields the whole string as one cell** (pinned; Python errors here, but a total corpus workhorse beats a `panic` row) |
+| `utf8_trim` | `Utf8 -> Utf8` | v1.3: strip ASCII whitespace (space, `\t`, `\r`, `\n`) from both ends — ASCII only, pinned for determinism |
+| `utf8_parse_f64` | `Utf8 -> Option F64` | v1.3: parse exactly `-? digits [ "." digits ]` (underscores not accepted — this is data, not source); anything else — including exponents — is `None`. Grammar provisional prelude surface like the rest of §11; extending it (plan 04) is a behavior change to record |
 | `unit` | `Unit` | the unit value — there is no `()` literal; this is the one way to write `Unit` (§13.2) |
 | `list_len` | `List a -> I64` | length |
 | `list_nth` | `List a -> I64 -> panic a` | zero-based index; out of range panics |

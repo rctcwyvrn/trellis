@@ -13,7 +13,7 @@ TrFile {
             xfail: false,
             agent: false,
             span: 152..241,
-            content: "type ParseError =\n  | EmptyLine\n  | BadCell { index : U64, text : Utf8 }\n",
+            content: "type ParseError =\n  | EmptyLine\n  | BadCell { index : I64, text : Utf8 }\n",
             payload: TypeDef(
                 TypeDef {
                     name: "ParseError",
@@ -39,7 +39,7 @@ TrFile {
                                                         col: 1,
                                                     },
                                                     item: Con {
-                                                        name: "U64",
+                                                        name: "I64",
                                                         args: [],
                                                     },
                                                 },

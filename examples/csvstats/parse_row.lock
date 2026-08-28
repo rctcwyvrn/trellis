@@ -2,17 +2,17 @@
   "lock_format": 1,
   "name": "parse_row",
   "kind": "function",
-  "versions": { "trellis": "0.1", "soil": "0.1" },
+  "versions": { "trellis": "0.1.0", "soil": "0.1" },
   "spec": {
     "provenance": "human",
     "hashes": {
-      "formal": "sha256:b3e91c07",
-      "test": "sha256:6a2f88d1",
-      "prose": "sha256:12c4a9ee"
+      "formal": "sha256:bf4c9b19e1ca0e7050768a3cf2b707acb7c3b30bbce5eebd34a0fe57955e584d",
+      "test": "sha256:f234b5385d86dc133a6e40652bf95789ce50a98e832822865f26733500c2edc2",
+      "prose": "sha256:dbe16a4c13de1c80e43a05db528886c47478b4c4a237ac52e83757797e67634c"
     },
     "prose_state": "fresh",
     "blocks": [
-      { "block": "soil-sig", "author": "agent" },
+      { "block": "soil-sig", "author": "human" },
       { "block": "test happy-path", "author": "human" },
       { "block": "test errors", "author": "human" },
       { "block": "test scientific-notation", "author": "human" }
@@ -21,22 +21,24 @@
     "escape_hatches": []
   },
   "lowering": {
-    "soil_hash": "sha256:f00d3c21",
-    "provenance": "agent",
-    "provider": "claude-code",
-    "model": "claude-opus-4-7",
+    "soil_hash": "sha256:c3f99d99d11fa4352ff1f9f252f5933ae28cd4f278ac0a5b6ce971c411407391",
+    "provenance": "human-verified",
+    "provider": null,
+    "model": null,
     "private_helpers": [
-      { "name": "_parse_cell", "hash": "sha256:3fe210bb" }
+      { "name": "_parse_cell", "hash": "sha256:fbbc9e37d86ec7298fd1ac46213aa6fc7cb19c208963fcad8381c110f1eb1a24" }
     ],
-    "calls": [
-      { "name": "utf8_split", "hash": "sha256:91d0aa47" },
-      { "name": "utf8_trim", "hash": "sha256:207cbe55" }
-    ]
+    "calls": [],
+    "decisions": {
+      "scope_hash": "sha256:af5570f5a1810b7af78caf4bc70a660f0df51e42baf91d4de5b2328de0e83dfc",
+      "applied": []
+    }
   },
   "checks": {
     "types": "ok",
-    "refinements": "none",
-    "demoted": []
+    "termination": "unverified",
+    "refinements": {},
+    "holes": 0
   },
   "tests": [
     { "name": "happy-path#1", "tier": "expect", "mode": "sandboxed", "origin": "spec", "result": "pass" },

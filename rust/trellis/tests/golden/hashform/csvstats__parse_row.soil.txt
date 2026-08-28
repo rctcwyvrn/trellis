@@ -1,0 +1,17 @@
+parse_row : (line : Utf8) -> Result Row ParseError
+parse_row %0 =
+  if %0 == ""
+  then Err EmptyLine
+  else
+    let %1 = utf8_split "," %0 in
+    let %2 = list_len %1 in
+    let rec %3 = fun %4 %5 ->
+      if %4 == %2
+      then Ok { cells = %5 }
+      else
+        let %6 = list_nth %1 %4 in
+        match _parse_cell %6 with
+        | Some %7 -> %3 (%4 + 1) (list_append %5 %7)
+        | None -> Err (BadCell { index = %4, text = %6 })
+    in
+    %3 0 list_empty

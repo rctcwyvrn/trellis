@@ -1,0 +1,2 @@
+_parse_cell : Utf8 -> Option F64
+_parse_cell cell = utf8_parse_f64 (utf8_trim cell)

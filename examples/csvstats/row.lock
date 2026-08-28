@@ -2,13 +2,13 @@
   "lock_format": 1,
   "name": "Row",
   "kind": "type",
-  "versions": { "trellis": "0.1", "soil": "0.1" },
+  "versions": { "trellis": "0.1.0", "soil": "0.1" },
   "spec": {
     "provenance": "human",
     "hashes": {
-      "formal": "sha256:4d7e02c9",
+      "formal": "sha256:36af0f58e2bd320599cdcced097bf362d82842a7000b7fcf878ca04005cdd5f8",
       "test": null,
-      "prose": "sha256:88b1f6a3"
+      "prose": "sha256:5ec14fb41210d70182cc23ad03838d6bb5d9694791c16d1cbdfd00db919a4d16"
     },
     "prose_state": "fresh",
     "blocks": [
@@ -18,14 +18,15 @@
     "pinned": false,
     "escape_hatches": []
   },
-  "cycle_hash": null,
   "checks": {
     "types": "ok",
-    "invariants": "proven",
-    "demoted": []
+    "invariants": {
+      "non-empty": "runtime"
+    }
   },
   "tests": [
-    { "name": "invariant non-empty", "tier": "property", "mode": "sandboxed", "origin": "derived", "result": "pass" }
+    { "name": "derived:invariant:non-empty", "tier": "property", "mode": "sandboxed", "origin": "derived", "result": "pass" }
   ],
+  "cycle_hash": null,
   "accepted": true
 }

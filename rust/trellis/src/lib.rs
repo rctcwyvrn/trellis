@@ -11,5 +11,7 @@ pub mod config;
 pub mod daemon;
 pub mod diag;
 pub mod hash;
+pub mod lock;
+pub mod manifest;
 pub mod rpc;
 pub mod trfile;
