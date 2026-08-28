@@ -32,6 +32,24 @@ pub fn hash_form_file(src: &str, filename: &str) -> Result<String, Diagnostic> {
     Ok(crate::print::print_file(&file))
 }
 
+/// Per-definition hash forms — `(name, text)` in file order. The unit
+/// of hashing is the definition, and a `_private.soil` holds several
+/// (design §4.2), each content-addressed separately.
+pub fn hash_forms_per_def(src: &str, filename: &str) -> Result<Vec<(String, String)>, Diagnostic> {
+    let file = crate::parser::parse_file(src, filename)?;
+    Ok(file
+        .defs
+        .into_iter()
+        .map(|def| {
+            let mut def = def;
+            rename_def(&mut def.item);
+            let name = def.item.name.clone();
+            let solo = File { defs: vec![def] };
+            (name, crate::print::print_file(&solo))
+        })
+        .collect())
+}
+
 struct Renamer {
     next: usize,
     /// Scope stack: original name → site number.

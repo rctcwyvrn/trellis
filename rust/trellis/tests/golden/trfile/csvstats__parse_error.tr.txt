@@ -12,7 +12,7 @@ TrFile {
             name: None,
             xfail: false,
             agent: false,
-            span: 152..241,
+            span: 152..242,
             content: "type ParseError =\n  | EmptyLine\n  | BadCell { index : I64, text : Utf8 }\n",
             payload: TypeDef(
                 TypeDef {

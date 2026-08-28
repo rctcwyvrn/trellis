@@ -68,7 +68,15 @@ pub fn extract(body: &str, base: usize) -> Result<Extraction, Vec<Diag>> {
             }
             Event::End(TagEnd::CodeBlock) => {
                 if let Some((info, content, start)) = current.take() {
-                    match classify(&info, base + start, base + range.end, content) {
+                    // pulldown's range stops before the closing
+                    // fence's newline; swallow it so a whole block —
+                    // its line included — belongs to its hash class
+                    // (adding a block must not move `prose_hash`).
+                    let mut end = range.end;
+                    if body.as_bytes().get(end) == Some(&b'\n') {
+                        end += 1;
+                    }
+                    match classify(&info, base + start, base + end, content) {
                         Ok(Some(block)) => blocks.push(block),
                         Ok(None) => has_prose = true, // unreserved fence
                         Err(diag) => errors.push(diag),

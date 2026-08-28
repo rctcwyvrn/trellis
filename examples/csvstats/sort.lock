@@ -8,7 +8,7 @@
     "hashes": {
       "formal": "sha256:ab2a53be5353cc0ae39b856350b49985c8a4cda2e3a429dd423b101006fcb694",
       "test": "sha256:86528daeca409070e169481c1633a44d44bfc2a40690f9e1f6f464aa15f18332",
-      "prose": "sha256:ed88e39adcadf3a4167d61dd0bea75c38371696c0c5e4849e47133971749f878"
+      "prose": "sha256:e98070e45101c6c1eef913552e6a05c2548b9a0cb27b6539a174b597187d75bf"
     },
     "prose_state": "fresh",
     "blocks": [

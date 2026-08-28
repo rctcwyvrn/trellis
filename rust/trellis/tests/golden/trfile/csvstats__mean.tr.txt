@@ -14,7 +14,7 @@ TrFile {
             ),
             xfail: false,
             agent: false,
-            span: 72..115,
+            span: 72..116,
             content: "([1.0, 2.0, 3.0]) => 2.0\n",
             payload: Tests(
                 TestBlock {

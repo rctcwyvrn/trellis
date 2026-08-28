@@ -12,7 +12,7 @@ TrFile {
             name: None,
             xfail: false,
             agent: false,
-            span: 154..204,
+            span: 154..205,
             content: "sort : (xs : List F64) -> List F64\n",
             payload: Sig(
                 Sig {
@@ -105,7 +105,7 @@ TrFile {
             name: None,
             xfail: false,
             agent: false,
-            span: 206..261,
+            span: 206..262,
             content: "length-preserved: len(result) == len(xs)\n",
             payload: Clauses(
                 [
@@ -184,7 +184,7 @@ TrFile {
             ),
             xfail: false,
             agent: false,
-            span: 263..366,
+            span: 263..367,
             content: "([3.0, 1.0, 2.0]) => [1.0, 2.0, 3.0]\n([]) => []\n([2.0, 1.0, 1.0]) => [1.0, 1.0, 2.0]\n",
             payload: Tests(
                 TestBlock {

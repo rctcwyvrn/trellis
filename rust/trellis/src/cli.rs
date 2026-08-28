@@ -16,7 +16,7 @@ const USAGE: &str = "usage: trellis <command> [args] | trellis --version\n\
 /// Commands forwarded to the daemon as same-named methods (step 2:
 /// they dispatch, hit the pin gate where mutating, and report
 /// unimplemented — the full path exists before the features do).
-const FORWARDED: [&str; 11] = [
+const FORWARDED: [&str; 12] = [
     "check",
     "status",
     "refresh",
@@ -28,6 +28,7 @@ const FORWARDED: [&str; 11] = [
     "answer",
     "skill",
     "toolchain",
+    "decisions",
 ];
 
 pub fn run(args: &[String]) -> i32 {
@@ -120,16 +121,25 @@ fn forward(command: &str, args: &[&str]) -> i32 {
         Ok(client) => client,
         Err(report) => return render_error(&report),
     };
-    // `trellis toolchain update` is method `toolchain_update`.
+    // Subcommand spellings: `trellis toolchain update`,
+    // `trellis decisions editorial <label>`.
     let (method, args) = if command == "toolchain" && args.first() == Some(&"update") {
         ("toolchain_update".to_string(), &args[1..])
+    } else if command == "decisions" && args.first() == Some(&"editorial") {
+        ("decisions_editorial".to_string(), &args[1..])
     } else {
         (command.to_string(), args)
     };
+    let json_output = args.contains(&"--json");
+    let args: Vec<&str> = args.iter().copied().filter(|a| *a != "--json").collect();
     let params = serde_json::json!({ "args": args });
     match client.call(&method, params) {
         Ok(Ok(result)) => {
-            println!("{result}");
+            if method == "status" && !json_output {
+                render_status(&result);
+            } else {
+                println!("{result}");
+            }
             EXIT_OK
         }
         Ok(Err(error)) => {
@@ -143,6 +153,52 @@ fn forward(command: &str, args: &[&str]) -> i32 {
             "io",
             format!("daemon connection lost: {e}"),
         )),
+    }
+}
+
+/// The human table (`--json` for the raw report).
+fn render_status(report: &serde_json::Value) {
+    let defs = report.get("defs").and_then(|d| d.as_array());
+    let Some(defs) = defs else {
+        println!("{report}");
+        return;
+    };
+    let field = |v: &serde_json::Value, k: &str| -> String {
+        v.get(k).and_then(|x| x.as_str()).unwrap_or("-").to_string()
+    };
+    let width = defs
+        .iter()
+        .map(|d| field(d, "path").len())
+        .max()
+        .unwrap_or(4)
+        .max(4);
+    println!("{:width$}  {:8}  {:9}  flags", "path", "kind", "status");
+    for def in defs {
+        let flags: Vec<String> = def
+            .get("flags")
+            .and_then(|f| f.as_array())
+            .map(|f| {
+                f.iter()
+                    .filter_map(|x| x.as_str().map(str::to_string))
+                    .collect()
+            })
+            .unwrap_or_default();
+        println!(
+            "{:width$}  {:8}  {:9}  {}",
+            field(def, "path"),
+            field(def, "kind"),
+            field(def, "status"),
+            if flags.is_empty() {
+                "-".to_string()
+            } else {
+                flags.join(",")
+            }
+        );
+    }
+    if let Some(errors) = report.get("errors").and_then(|e| e.as_array()) {
+        for error in errors {
+            eprintln!("error: {}", error);
+        }
     }
 }
 

@@ -12,7 +12,7 @@ TrFile {
             name: None,
             xfail: false,
             agent: false,
-            span: 135..183,
+            span: 135..184,
             content: "type Row = { cells : List F64 }\n",
             payload: TypeDef(
                 TypeDef {
@@ -60,7 +60,7 @@ TrFile {
             name: None,
             xfail: false,
             agent: false,
-            span: 185..232,
+            span: 185..233,
             content: "non-empty: len(self.cells) > 0\n",
             payload: Clauses(
                 [

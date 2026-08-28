@@ -16,7 +16,14 @@ use crate::rpc::{self, Request, Response};
 /// Commands that will write locks or spend tokens: these refuse under
 /// a toolchain mismatch (soil-toml §2.1). Read-only commands run
 /// under a mismatch so a foreign-pinned root stays inspectable.
-const MUTATING: [&str; 5] = ["lower", "test", "refresh", "answer", "toolchain_update"];
+const MUTATING: [&str; 6] = [
+    "lower",
+    "test",
+    "refresh",
+    "answer",
+    "toolchain_update",
+    "decisions_editorial",
+];
 const READ_ONLY: [&str; 6] = ["check", "status", "context", "call", "repl", "skill"];
 
 struct State {
@@ -104,12 +111,68 @@ fn dispatch(request: Request, state: &State) -> Response {
             }),
         ),
         "shutdown" => Response::ok(id, serde_json::json!({ "ok": true })),
+        "status" => match status_report(state) {
+            Ok(report) => Response::ok(id, report),
+            Err(report) => diag_error(id, &report),
+        },
+        "check" => {
+            let run = config::load(&state.root)
+                .and_then(|config| crate::state::scan(&state.root, &config))
+                .and_then(|root| crate::state::check(&root));
+            match run {
+                Ok(out) => Response::ok(id, out),
+                Err(report) => diag_error(id, &report),
+            }
+        }
         method if MUTATING.contains(&method) => {
             // The pin gate, live from the first command (soil-toml §2.1).
-            let gate = config::load(&state.root).and_then(|c| config::check_pin(&c));
-            match gate {
-                Err(report) => diag_error(id, &report),
-                Ok(()) => unimplemented(id, method),
+            let gate = config::load(&state.root).and_then(|c| {
+                config::check_pin(&c)?;
+                Ok(c)
+            });
+            let config = match gate {
+                Err(report) => return diag_error(id, &report),
+                Ok(config) => config,
+            };
+            match method {
+                "refresh" => match crate::state::refresh(&state.root, &config) {
+                    Ok(report) => Response::ok(
+                        id,
+                        serde_json::to_value(&report).expect("report serializes"),
+                    ),
+                    Err(report) => diag_error(id, &report),
+                },
+                "decisions_editorial" => {
+                    let label = request
+                        .params
+                        .get("args")
+                        .and_then(|a| a.get(0))
+                        .and_then(|v| v.as_str())
+                        .map(str::to_string);
+                    match label {
+                        None => Response::err(
+                            id,
+                            rpc::RPC_DIAG,
+                            "usage",
+                            Some(
+                                serde_json::to_value(ErrorReport::one(
+                                    "usage",
+                                    "usage: trellis decisions editorial <label>",
+                                ))
+                                .expect("report serializes"),
+                            ),
+                        ),
+                        Some(label) => {
+                            match crate::state::editorial(&state.root, &config, &label) {
+                                Ok(restamped) => {
+                                    Response::ok(id, serde_json::json!({ "restamped": restamped }))
+                                }
+                                Err(report) => diag_error(id, &report),
+                            }
+                        }
+                    }
+                }
+                _ => unimplemented(id, method),
             }
         }
         method if READ_ONLY.contains(&method) => unimplemented(id, method),
@@ -120,6 +183,21 @@ fn dispatch(request: Request, state: &State) -> Response {
             None,
         ),
     }
+}
+
+fn status_report(state: &State) -> Result<serde_json::Value, ErrorReport> {
+    let config = config::load(&state.root)?;
+    let root = crate::state::scan(&state.root, &config)?;
+    let report = match crate::state::compile(&root) {
+        Ok(compiled) => crate::state::statuses(&root, &compiled.soil_hashes, &compiled.refs),
+        Err(err) => {
+            let mut report =
+                crate::state::statuses(&root, &Default::default(), &Default::default());
+            report.errors = err.errors;
+            report
+        }
+    };
+    Ok(serde_json::to_value(&report).expect("report serializes"))
 }
 
 fn diag_error(id: u64, report: &ErrorReport) -> Response {

@@ -29,6 +29,12 @@ pub struct Diag {
     pub file: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub span: Option<Span>,
+    /// Registry enrichment (contract §6) — attached by
+    /// `registry::enrich` at the daemon boundary.
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub repair_class: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub spec_ref: Option<String>,
 }
 
 impl Diag {
@@ -38,6 +44,8 @@ impl Diag {
             message: message.into(),
             file: None,
             span: None,
+            repair_class: None,
+            spec_ref: None,
         }
     }
 

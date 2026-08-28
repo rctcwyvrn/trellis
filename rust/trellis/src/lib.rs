@@ -6,12 +6,20 @@
 //! daemon lifecycle, JSON-RPC over the Unix socket, `soil.toml`
 //! loading and the toolchain pin.
 
+// `ErrorReport` carries registry-enriched diagnostics and sits in
+// cold error paths of a CLI/daemon; boxing every result for clippy's
+// size heuristic would be noise.
+#![allow(clippy::result_large_err)]
+
 pub mod cli;
 pub mod config;
 pub mod daemon;
 pub mod diag;
+pub mod envgen;
 pub mod hash;
 pub mod lock;
 pub mod manifest;
+pub mod registry;
 pub mod rpc;
+pub mod state;
 pub mod trfile;

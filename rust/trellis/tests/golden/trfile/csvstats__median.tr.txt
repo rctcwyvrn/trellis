@@ -12,7 +12,7 @@ TrFile {
             name: None,
             xfail: false,
             agent: false,
-            span: 160..207,
+            span: 160..208,
             content: "median : (xs : List F64) -> F64\n",
             payload: Sig(
                 Sig {
@@ -92,7 +92,7 @@ TrFile {
             name: None,
             xfail: false,
             agent: false,
-            span: 209..247,
+            span: 209..248,
             content: "non-empty: len(xs) > 0\n",
             payload: Clauses(
                 [
@@ -157,7 +157,7 @@ TrFile {
             name: None,
             xfail: false,
             agent: false,
-            span: 249..325,
+            span: 249..326,
             content: "lower bound: min(xs) <= result\nupper bound: result <= max(xs)\n",
             payload: Clauses(
                 [
@@ -272,7 +272,7 @@ TrFile {
             name: None,
             xfail: false,
             agent: false,
-            span: 417..454,
+            span: 417..455,
             content: "ref/stats.py::median\n",
             payload: Reference(
                 Python {
@@ -289,7 +289,7 @@ TrFile {
             ),
             xfail: false,
             agent: false,
-            span: 456..503,
+            span: 456..504,
             content: "([1.0, 3.0, 2.0]) => 2.0\n",
             payload: Tests(
                 TestBlock {
@@ -321,7 +321,7 @@ TrFile {
             ),
             xfail: false,
             agent: false,
-            span: 505..558,
+            span: 505..559,
             content: "([1.0, 2.0, 3.0, 4.0]) => 2.5\n",
             payload: Tests(
                 TestBlock {
@@ -354,7 +354,7 @@ TrFile {
             ),
             xfail: false,
             agent: false,
-            span: 560..595,
+            span: 560..596,
             content: "([42.0]) => 42.0\n",
             payload: Tests(
                 TestBlock {
@@ -384,7 +384,7 @@ TrFile {
             ),
             xfail: false,
             agent: false,
-            span: 597..703,
+            span: 597..704,
             content: "forall xs : List F64 where len(xs) > 0\nmedian(xs) == median(reverse(xs))\n",
             payload: Property(
                 PropertyBlock {

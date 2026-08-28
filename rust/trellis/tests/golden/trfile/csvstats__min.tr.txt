@@ -12,7 +12,7 @@ TrFile {
             name: None,
             xfail: false,
             agent: false,
-            span: 76..126,
+            span: 76..127,
             content: "min : (xs : List F64) -> panic F64\n",
             payload: Sig(
                 Sig {
@@ -94,7 +94,7 @@ TrFile {
             name: None,
             xfail: false,
             agent: false,
-            span: 128..166,
+            span: 128..167,
             content: "non-empty: len(xs) > 0\n",
             payload: Clauses(
                 [
@@ -161,7 +161,7 @@ TrFile {
             ),
             xfail: false,
             agent: false,
-            span: 168..228,
+            span: 168..229,
             content: "([2.0, 1.0, 3.0]) => 1.0\n([5.0]) => 5.0\n",
             payload: Tests(
                 TestBlock {
@@ -205,7 +205,7 @@ TrFile {
             ),
             xfail: false,
             agent: false,
-            span: 230..261,
+            span: 230..262,
             content: "([]) => panic\n",
             payload: Tests(
                 TestBlock {

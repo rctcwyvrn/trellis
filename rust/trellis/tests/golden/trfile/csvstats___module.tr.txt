@@ -12,7 +12,7 @@ TrFile {
             name: None,
             xfail: false,
             agent: false,
-            span: 230..291,
+            span: 230..292,
             content: "parse_row\nmedian\nmean\ntype Row\ntype ParseError\n",
             payload: Exports(
                 [

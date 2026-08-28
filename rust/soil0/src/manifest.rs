@@ -66,9 +66,10 @@ pub enum IgnoredDefault {
 pub struct VariantD {
     pub name: String,
     pub payload: Opt<SigType>,
-    /// Inline record payloads (tr-grammar §4.1) — kernel-internal, not
-    /// yet expressible in `env.json` (contract §13.5).
-    #[serde(skip)]
+    /// Inline record payloads (tr-grammar §4.1) — contract v1.2's
+    /// `fields` key (2026-08-24, resolving §13.5): mutually exclusive
+    /// with `payload`; absent in v1.1 env files.
+    #[serde(default, rename = "fields", skip_serializing_if = "Option::is_none")]
     pub record_fields: Option<Vec<FieldD>>,
 }
 
@@ -249,6 +250,17 @@ fn shapes_of(td: &TypeDef) -> Vec<&SigType> {
 }
 
 fn validate_typedef(td: &TypeDef, kernel_names: &[String]) -> Result<(), Diagnostic> {
+    if let TypeBody::Sum { variants } = &td.body {
+        for v in variants {
+            if matches!(v.payload, Opt(Some(_))) && v.record_fields.is_some() {
+                return Err(malformed(format!(
+                    "env.json: variant `{}::{}` declares both `payload` and `fields` \
+                     (contract §6, v1.2: mutually exclusive)",
+                    td.name, v.name
+                )));
+            }
+        }
+    }
     if kernel_names.contains(&td.name) {
         return Err(malformed(format!(
             "env.json: `{}` redeclares a kernel type",

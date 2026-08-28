@@ -104,11 +104,11 @@ fn autospawn_status_stop_roundtrip() {
     let out = env.run(&["daemon", "status"]);
     assert!(stdout(&out).contains("\"running\":false"));
 
-    // A forwarded command auto-spawns the daemon and reports
-    // unimplemented through the full RPC path.
+    // A forwarded command auto-spawns the daemon; `status` is real
+    // since step 6 and renders the (empty) table.
     let out = env.run(&["status"]);
-    assert_eq!(out.status.code(), Some(2));
-    assert!(stderr(&out).contains("unimplemented"));
+    assert_eq!(out.status.code(), Some(0), "{}", stderr(&out));
+    assert!(stdout(&out).contains("path"), "{}", stdout(&out));
 
     let out = env.run(&["daemon", "status"]);
     assert!(stdout(&out).contains("\"running\":true"));
@@ -127,7 +127,7 @@ fn stale_socket_recovers() {
 
     // Spawn a daemon, then kill it dead so its socket file lingers.
     let out = env.run(&["check"]);
-    assert!(stderr(&out).contains("unimplemented"));
+    assert_eq!(out.status.code(), Some(0), "{}", stderr(&out));
     let socket_dir = env.runtime.join("trellis");
     let sockets: Vec<_> = std::fs::read_dir(&socket_dir)
         .unwrap()
@@ -140,8 +140,7 @@ fn stale_socket_recovers() {
 
     // The next client removes the stale file and respawns.
     let out = env.run(&["check"]);
-    assert_eq!(out.status.code(), Some(2));
-    assert!(stderr(&out).contains("unimplemented"));
+    assert_eq!(out.status.code(), Some(0), "{}", stderr(&out));
     let out = env.run(&["daemon", "status"]);
     assert!(stdout(&out).contains("\"running\":true"));
 }
@@ -174,10 +173,10 @@ fn pin_mismatch_refuses_mutating_only() {
     assert_eq!(out.status.code(), Some(1));
     assert!(stderr(&out).contains("toolchain-mismatch"));
 
-    // Read-only: allowed past the pin (reaches unimplemented).
+    // Read-only: allowed past the pin (`check` runs and the empty
+    // root checks clean).
     let out = env.run(&["check"]);
-    assert_eq!(out.status.code(), Some(2));
-    assert!(stderr(&out).contains("unimplemented"));
+    assert_eq!(out.status.code(), Some(0), "{}", stderr(&out));
 }
 
 #[test]

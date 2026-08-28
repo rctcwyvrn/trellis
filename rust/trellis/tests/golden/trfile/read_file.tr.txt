@@ -12,7 +12,7 @@ TrFile {
             name: None,
             xfail: false,
             agent: false,
-            span: 176..258,
+            span: 176..259,
             content: "read_file : (fs : Fs) -> (path : Path) -> io (Result Utf8 FsError)\n",
             payload: Sig(
                 Sig {
@@ -149,7 +149,7 @@ TrFile {
             ),
             xfail: false,
             agent: false,
-            span: 260..521,
+            span: 260..522,
             content: "with fs = fake_fs [{\"key\": \"config.toml\", \"value\": \"port = 8080\"}]\n(fs, \"config.toml\") => {\"tag\": \"Ok\", \"value\": \"port = 8080\"}\n(fs, \"missing.toml\") => {\"tag\": \"Err\", \"value\": {\"tag\": \"NotFound\", \"value\": {\"path\": \"missing.toml\"}}}\n",
             payload: Tests(
                 TestBlock {
@@ -217,7 +217,7 @@ TrFile {
             ),
             xfail: false,
             agent: false,
-            span: 574..714,
+            span: 574..715,
             content: "with file \"config.toml\" = \"port = 8080\"\n$ trellis call read_file '\"config.toml\"'\n{\"tag\": \"Ok\", \"value\": \"port = 8080\"}\n",
             payload: Cram(
                 CramBlock {
