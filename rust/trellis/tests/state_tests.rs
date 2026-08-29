@@ -113,7 +113,7 @@ fn clean_tree_is_clean() {
     assert_clean(&statuses);
     assert_eq!(statuses["csvstats/median"].0, "accepted");
     assert_eq!(statuses["csvstats/mean"].0, "unlowered");
-    assert_eq!(statuses["csvstats/len"].0, "typed");
+    assert_eq!(statuses["csvstats/len"].0, "tested");
     assert_eq!(statuses["read_file"].0, "accepted");
 
     // The computed content addresses agree with every stored one —

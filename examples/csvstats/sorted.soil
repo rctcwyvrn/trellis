@@ -1,0 +1,12 @@
+sorted : (xs : List F64) -> Bool
+sorted xs =
+  let n = list_len xs in
+  let rec go = fun i ->
+    if i + 1 >= n
+    then True
+    else
+      if list_nth xs i <= list_nth xs (i + 1)
+      then go (i + 1)
+      else False
+  in
+  go 0

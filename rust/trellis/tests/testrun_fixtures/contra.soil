@@ -1,0 +1,2 @@
+contra : (x : I64) -> I64
+contra x = x

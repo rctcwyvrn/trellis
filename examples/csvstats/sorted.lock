@@ -1,0 +1,49 @@
+{
+  "lock_format": 1,
+  "name": "sorted",
+  "kind": "function",
+  "versions": { "trellis": "0.1.0", "soil": "0.1" },
+  "spec": {
+    "provenance": "human",
+    "hashes": {
+      "formal": "sha256:b5643eeb1fc471f8d56832483aabba77b84b7cb036b66387c10f74d2f352e5a6",
+      "test": "sha256:1c575c18ff9ee4832bde05517d66ff284e184fbe8c691b1ed4e12d23c7367884",
+      "prose": "sha256:38a75d296be78bca03e9e66aef8070f256cb18a0fe40c1c8d89dce6a54b0fa87"
+    },
+    "prose_state": "fresh",
+    "blocks": [
+      { "block": "soil-sig", "author": "human" },
+      { "block": "test classifies", "author": "human" }
+    ],
+    "pinned": false,
+    "escape_hatches": []
+  },
+  "lowering": {
+    "soil_hash": "sha256:a287beae9763b3cbf69a015b36dbd6940646c94346e040df4b4b379db619b709",
+    "provenance": "human-verified",
+    "provider": null,
+    "model": null,
+    "private_helpers": [],
+    "calls": [],
+    "decisions": {
+      "scope_hash": "sha256:af5570f5a1810b7af78caf4bc70a660f0df51e42baf91d4de5b2328de0e83dfc",
+      "applied": []
+    }
+  },
+  "checks": {
+    "types": "ok",
+    "termination": "unverified",
+    "refinements": {},
+    "holes": 0
+  },
+  "tests": [
+    { "name": "classifies#1", "tier": "expect", "mode": "sandboxed", "origin": "spec", "result": "pass" },
+    { "name": "classifies#2", "tier": "expect", "mode": "sandboxed", "origin": "spec", "result": "pass" },
+    { "name": "classifies#3", "tier": "expect", "mode": "sandboxed", "origin": "spec", "result": "pass" },
+    { "name": "classifies#4", "tier": "expect", "mode": "sandboxed", "origin": "spec", "result": "pass" },
+    { "name": "classifies#5", "tier": "expect", "mode": "sandboxed", "origin": "spec", "result": "pass" },
+    { "name": "classifies#6", "tier": "expect", "mode": "sandboxed", "origin": "spec", "result": "pass" }
+  ],
+  "oracles": [],
+  "accepted": false
+}

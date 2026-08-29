@@ -150,10 +150,17 @@ pub struct Compiled {
     pub soil_hashes: BTreeMap<String, String>,
 }
 
-/// Assemble and rename the root's program; compute every definition's
-/// `soil_hash` bottom-up.
-pub fn compile(root: &Root) -> Result<Compiled, ErrorReport> {
-    // Type environment from the type entries.
+/// The assembled program inputs: the environment plus the sources in
+/// dependency order — shared by `compile` and the test runner (which
+/// appends synthesized wrapper files, step 7).
+pub struct Assembly {
+    pub env: soil0::manifest::EnvFile,
+    /// (rel `.soil` path, source), callee-first.
+    pub ordered: Vec<(String, String)>,
+}
+
+/// Build the environment from the root's type entries.
+pub fn env_of_root(root: &Root) -> Result<soil0::manifest::EnvFile, ErrorReport> {
     let typedefs: Vec<&trfile::typedef::TypeDef> = root
         .entries
         .values()
@@ -164,12 +171,24 @@ pub fn compile(root: &Root) -> Result<Compiled, ErrorReport> {
             })
         })
         .collect();
-    let env = crate::envgen::env_of(&typedefs).map_err(|d| ErrorReport {
+    crate::envgen::env_of(&typedefs).map_err(|d| ErrorReport {
         errors: vec![registry::enrich(d)],
-    })?;
+    })
+}
 
-    // The files: every lowered function plus the private files, in
-    // dependency order (the daemon owns the tree — contract §7).
+/// Assemble and rename the root's program; compute every definition's
+/// `soil_hash` bottom-up.
+pub fn compile(root: &Root) -> Result<Compiled, ErrorReport> {
+    let Assembly { env, ordered } = assemble(root)?;
+    compile_assembly(root, env, ordered)
+}
+
+/// Order the root's sources callee-first (the daemon owns the tree —
+/// contract §7) and build the environment.
+pub fn assemble(root: &Root) -> Result<Assembly, ErrorReport> {
+    let env = env_of_root(root)?;
+
+    // The files: every lowered function plus the private files.
     let mut sources: Vec<(String, String)> = Vec::new(); // (rel .soil path, src)
     for entry in root.entries.values() {
         if let Some(soil) = &entry.soil {
@@ -235,7 +254,14 @@ pub fn compile(root: &Root) -> Result<Compiled, ErrorReport> {
         .iter()
         .map(|rel| (rel.clone(), by_rel[rel.as_str()].to_string()))
         .collect();
+    Ok(Assembly { env, ordered })
+}
 
+fn compile_assembly(
+    root: &Root,
+    env: soil0::manifest::EnvFile,
+    ordered: Vec<(String, String)>,
+) -> Result<Compiled, ErrorReport> {
     let program = soil0::manifest::from_parts(env, &ordered).map_err(|d| ErrorReport {
         errors: vec![soil0_diag(&d)],
     })?;
@@ -409,6 +435,43 @@ fn topo_sort(deps: &BTreeMap<String, BTreeSet<String>>) -> Result<Vec<String>, V
         visit(node, deps, &mut state, &mut order)?;
     }
     Ok(order)
+}
+
+/// The lowering's reference edges for one definition, from the
+/// compiled rename output: `calls` (public defs by `soil_hash`) and
+/// `private_helpers` (module privates by their folded hash).
+pub fn lowering_edges(
+    compiled: &Compiled,
+    name: &str,
+    module: &str,
+) -> (Vec<crate::lock::NamedHash>, Vec<crate::lock::NamedHash>) {
+    let Some(sets) = compiled.refs.get(name) else {
+        return (Vec::new(), Vec::new());
+    };
+    let calls = sets
+        .defs
+        .iter()
+        .map(|n| crate::lock::NamedHash {
+            name: n.clone(),
+            hash: compiled.soil_hashes[n].clone(),
+        })
+        .collect();
+    let helpers = sets
+        .privates
+        .iter()
+        .map(|n| {
+            let key = if module.is_empty() {
+                n.clone()
+            } else {
+                format!("{module}/{n}")
+            };
+            crate::lock::NamedHash {
+                name: n.clone(),
+                hash: compiled.soil_hashes[&key].clone(),
+            }
+        })
+        .collect();
+    (calls, helpers)
 }
 
 // ---- statuses ----
@@ -700,31 +763,9 @@ pub fn refresh(root_path: &Path, config: &Config) -> Result<StatusReport, ErrorR
                         lowering.provenance = "hand-edited".into();
                     }
                     let module = module_of(&entry.rel);
-                    if let Some(sets) = compiled.refs.get(&entry.tr.name) {
-                        lowering.calls = sets
-                            .defs
-                            .iter()
-                            .map(|name| crate::lock::NamedHash {
-                                name: name.clone(),
-                                hash: compiled.soil_hashes[name].clone(),
-                            })
-                            .collect();
-                        lowering.private_helpers = sets
-                            .privates
-                            .iter()
-                            .map(|name| {
-                                let key = if module.is_empty() {
-                                    name.clone()
-                                } else {
-                                    format!("{module}/{name}")
-                                };
-                                crate::lock::NamedHash {
-                                    name: name.clone(),
-                                    hash: compiled.soil_hashes[&key].clone(),
-                                }
-                            })
-                            .collect();
-                    }
+                    let (calls, helpers) = lowering_edges(&compiled, &entry.tr.name, &module);
+                    lowering.calls = calls;
+                    lowering.private_helpers = helpers;
                 }
             }
         }

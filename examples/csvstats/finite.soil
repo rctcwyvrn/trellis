@@ -1,0 +1,2 @@
+finite : (x : F64) -> Bool
+finite x = x - x == 0.0

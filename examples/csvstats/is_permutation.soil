@@ -1,0 +1,16 @@
+is_permutation : (xs : List F64) -> (ys : List F64) -> Bool
+is_permutation xs ys =
+  if not (len xs == len ys)
+  then False
+  else
+    let n = list_len xs in
+    let rec go = fun i ->
+      if i == n
+      then True
+      else
+        let x = list_nth xs i in
+        if count_of xs x == count_of ys x
+        then go (i + 1)
+        else False
+    in
+    go 0

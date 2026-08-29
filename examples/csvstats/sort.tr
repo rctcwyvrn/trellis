@@ -4,19 +4,24 @@ name: sort
 
 # sort
 
-Sorts a list of floats into ascending order (insertion sort). Duplicates
-are kept; the result is a permutation of the input.
+Sorts a list of floats into ascending order (insertion sort) under
+Soil's total order on `F64` (design §3.7): `-0.0` before `0.0`, one
+logical `NaN` after `+Inf`. Because the order is total, sorting is
+fully specified for every input — duplicates are kept and the result
+is a permutation of the input, with no domain restriction.
 
 ```soil-sig
 sort : (xs : List F64) -> List F64
 ```
 
 ```ensures
-length-preserved: len(result) == len(xs)
+sorted: sorted result
+permutation: is_permutation xs result
 ```
 
 ```test orders
 ([3.0, 1.0, 2.0]) => [1.0, 2.0, 3.0]
 ([]) => []
 ([2.0, 1.0, 1.0]) => [1.0, 1.0, 2.0]
+([1.0, "NaN", "-Inf"]) => ["-Inf", 1.0, "NaN"]
 ```

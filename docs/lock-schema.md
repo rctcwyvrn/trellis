@@ -174,8 +174,15 @@ Top-level keys, in order:
 ]
 ```
 
-- `name`: `block-name#k` for multi-case blocks; the bare block name for
-  single-case blocks. Derived tests are namespaced (resolved
+- `name`: `block-name#k` for expect and cram rows (`k` 1-based, even
+  when the block has a single case — `single#1` — so a case added to a
+  block never renames an existing row); the bare block name for
+  property rows, which are one row per block by construction.
+  (Clarified 2026-08-28, step 7: earlier prose said single-case blocks
+  drop the `#k`, but the checked-in examples — this section's own
+  example included — never did, and the always-`#k` form is the one
+  with stable names under case addition.) Derived tests are namespaced
+  (resolved
   2026-08-24 with impl plan 03 §9.5): `derived:ensures:<label>` /
   `derived:requires:<label>` / `derived:invariant:<label>` for
   clause-derived properties, `derived:differential:<reference-line>`
@@ -208,7 +215,15 @@ Top-level keys, in order:
   reference implementation (by file hash), `accepted` definitions used as
   oracles (by `formal_hash`), and CLI oracles (by executable hash):
   `{ "kind": "cli", "command": "soil0 parse", "hash": "sha256:…" }`. A
-  changed oracle re-runs dependent tests (design §4.5).
+  changed oracle re-runs dependent tests (design §4.5). *v1 gap
+  (resolved 2026-08-28, impl plan 03 step 7): the daemon records
+  `reference` and `cli` rows only. Definition-oracle rows for user
+  definitions referenced by clause and property predicates — and the
+  acceptance rule design §4.5 attaches to them — wait for the prelude
+  (plan 04), which will absorb the helper vocabulary such predicates
+  lean on today (`len`, `sort`, the `csvstats` predicate suite) and
+  shrink the honest edge set to something worth enforcing. The schema
+  row is unchanged; only the writer is deferred.*
 
 ## 6. FFI bindings
 
@@ -284,7 +299,13 @@ Invariants the daemon enforces:
    or `xpass` (design §4.5) — resolving an xfail is a spec change, which
    clears `accepted` via the hash rules below. This gate applies to
    function entries; module and project entries carry `accepted`
-   ungated (they have no tests — §9, resolved 2026-08-24).
+   ungated (they have no tests — §9, resolved 2026-08-24), and **type
+   entries are accepted-ungated in v1** (resolved 2026-08-28): their
+   only possible tests are invariant-derived properties, which the v1
+   runner refuses (tr-grammar §4.2 toolchain note — they are
+   constrained generation in disguise), so the invariant stays visible
+   as a `runtime` assurance in `checks` and the gate tightens
+   automatically when plan 05 makes invariant properties runnable.
 2. A `human`-authored block may not be rewritten by the agent; the lowerer
    can only `ask_human`.
 3. Only `accepted` definitions may appear in another entry's `oracles`.

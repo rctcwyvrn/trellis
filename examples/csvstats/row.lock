@@ -24,9 +24,7 @@
       "non-empty": "runtime"
     }
   },
-  "tests": [
-    { "name": "derived:invariant:non-empty", "tier": "property", "mode": "sandboxed", "origin": "derived", "result": "pass" }
-  ],
+  "tests": [],
   "cycle_hash": null,
   "accepted": true
 }

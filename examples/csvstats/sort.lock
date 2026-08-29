@@ -6,9 +6,9 @@
   "spec": {
     "provenance": "human",
     "hashes": {
-      "formal": "sha256:ab2a53be5353cc0ae39b856350b49985c8a4cda2e3a429dd423b101006fcb694",
-      "test": "sha256:86528daeca409070e169481c1633a44d44bfc2a40690f9e1f6f464aa15f18332",
-      "prose": "sha256:e98070e45101c6c1eef913552e6a05c2548b9a0cb27b6539a174b597187d75bf"
+      "formal": "sha256:d0c31f647f4c602dd2eb0443d989a85b1c710ceed1d6a8a74f817c017f18d6f0",
+      "test": "sha256:597377afaa008d66e8d51e1dbba995f134e30b67e8d611fc10acf182b114094d",
+      "prose": "sha256:d5d9bf70e7f06de96eabc9074f72da690ac3b4e42782d58d06a3d3eb6675d4f2"
     },
     "prose_state": "fresh",
     "blocks": [
@@ -20,7 +20,7 @@
     "escape_hatches": []
   },
   "lowering": {
-    "soil_hash": "sha256:254a76b1c427e27822c063b547573303a74a81124ed7afecd381adf9c5647fd9",
+    "soil_hash": "sha256:ecb7c98a9c4fbcc3a802c3c224067136fc92df2c39bb7501277ee82c759a8188",
     "provenance": "human-verified",
     "provider": null,
     "model": null,
@@ -35,11 +35,19 @@
     "types": "ok",
     "termination": "unverified",
     "refinements": {
-      "length-preserved": "runtime"
+      "permutation": "runtime",
+      "sorted": "runtime"
     },
     "holes": 0
   },
-  "tests": [],
+  "tests": [
+    { "name": "orders#1", "tier": "expect", "mode": "sandboxed", "origin": "spec", "result": "pass" },
+    { "name": "orders#2", "tier": "expect", "mode": "sandboxed", "origin": "spec", "result": "pass" },
+    { "name": "orders#3", "tier": "expect", "mode": "sandboxed", "origin": "spec", "result": "pass" },
+    { "name": "orders#4", "tier": "expect", "mode": "sandboxed", "origin": "spec", "result": "pass" },
+    { "name": "derived:ensures:sorted", "tier": "property", "mode": "sandboxed", "origin": "derived", "result": "pass" },
+    { "name": "derived:ensures:permutation", "tier": "property", "mode": "sandboxed", "origin": "derived", "result": "pass" }
+  ],
   "oracles": [],
   "accepted": false
 }

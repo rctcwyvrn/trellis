@@ -1,0 +1,130 @@
+TrFile {
+    name: "non_empty",
+    tags: [],
+    kind: Function,
+    frontmatter_len: 24,
+    name_span: 4..20,
+    has_prose: true,
+    blocks: [
+        Block {
+            id: "soil-sig",
+            lang: "soil-sig",
+            name: None,
+            xfail: false,
+            agent: false,
+            span: 133..185,
+            content: "non_empty : (xs : List F64) -> Bool\n",
+            payload: Sig(
+                Sig {
+                    name: "non_empty",
+                    ty: Spanned {
+                        span: Span {
+                            start: 12,
+                            end: 35,
+                            line: 1,
+                            col: 13,
+                        },
+                        item: Arrow {
+                            param: Opt(
+                                Some(
+                                    Binder {
+                                        span: Span {
+                                            start: 13,
+                                            end: 15,
+                                            line: 1,
+                                            col: 14,
+                                        },
+                                        name: "xs",
+                                    },
+                                ),
+                            ),
+                            dom: Spanned {
+                                span: Span {
+                                    start: 18,
+                                    end: 26,
+                                    line: 1,
+                                    col: 19,
+                                },
+                                item: Con {
+                                    name: "List",
+                                    args: [
+                                        Spanned {
+                                            span: Span {
+                                                start: 23,
+                                                end: 26,
+                                                line: 1,
+                                                col: 24,
+                                            },
+                                            item: Con {
+                                                name: "F64",
+                                                args: [],
+                                            },
+                                        },
+                                    ],
+                                },
+                            },
+                            row: Row {
+                                effects: [],
+                                var: Opt(
+                                    None,
+                                ),
+                            },
+                            cod: Spanned {
+                                span: Span {
+                                    start: 31,
+                                    end: 35,
+                                    line: 1,
+                                    col: 32,
+                                },
+                                item: Con {
+                                    name: "Bool",
+                                    args: [],
+                                },
+                            },
+                        },
+                    },
+                },
+            ),
+        },
+        Block {
+            id: "test classifies",
+            lang: "test",
+            name: Some(
+                "classifies",
+            ),
+            xfail: false,
+            agent: false,
+            span: 186..239,
+            content: "([]) => false\n([1.0]) => true\n",
+            payload: Tests(
+                TestBlock {
+                    withs: [],
+                    cases: [
+                        TestCase {
+                            args: [
+                                Json(
+                                    Array [],
+                                ),
+                            ],
+                            outcome: Value(
+                                Bool(false),
+                            ),
+                        },
+                        TestCase {
+                            args: [
+                                Json(
+                                    Array [
+                                        Number(1.0),
+                                    ],
+                                ),
+                            ],
+                            outcome: Value(
+                                Bool(true),
+                            ),
+                        },
+                    ],
+                },
+            ),
+        },
+    ],
+}

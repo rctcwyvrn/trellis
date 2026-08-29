@@ -69,7 +69,14 @@ pub fn run(root: &Path) -> i32 {
         match stream {
             Ok(stream) => {
                 let state = Arc::clone(&state);
-                std::thread::spawn(move || handle_connection(stream, &state));
+                // The soil0 interpreter and checker recurse with the
+                // program (deep `let rec` evaluation, expression
+                // walking); the 2 MiB spawned-thread default is too
+                // small for real test runs, so connection threads get
+                // a deliberately generous stack.
+                let _ = std::thread::Builder::new()
+                    .stack_size(256 * 1024 * 1024)
+                    .spawn(move || handle_connection(stream, &state));
             }
             Err(_) => continue,
         }
@@ -135,6 +142,21 @@ fn dispatch(request: Request, state: &State) -> Response {
                 Ok(config) => config,
             };
             match method {
+                "test" => {
+                    let target = request
+                        .params
+                        .get("args")
+                        .and_then(|a| a.get(0))
+                        .and_then(|v| v.as_str())
+                        .map(str::to_string);
+                    match crate::testrun::run(&state.root, &config, target.as_deref()) {
+                        Ok(report) => Response::ok(
+                            id,
+                            serde_json::to_value(&report).expect("report serializes"),
+                        ),
+                        Err(report) => diag_error(id, &report),
+                    }
+                }
                 "refresh" => match crate::state::refresh(&state.root, &config) {
                     Ok(report) => Response::ok(
                         id,

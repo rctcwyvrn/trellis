@@ -100,6 +100,13 @@
     { "code": "budget-too-small", "source": "trellis", "repair_class": "fix-config", "spec_ref": "trellis-daemon#5" },
     { "code": "no-draft", "source": "trellis", "repair_class": "fix-config", "spec_ref": "trellis-daemon#3.2" },
     { "code": "unknown-spec-ref", "source": "trellis", "repair_class": "fix-config", "spec_ref": "trellis-daemon#7" },
-    { "code": "unsupported-where-filter", "source": "trellis", "repair_class": "fix-spec", "spec_ref": "tr-grammar#3.4" }
+    { "code": "unsupported-where-filter", "source": "trellis", "repair_class": "fix-spec", "spec_ref": "tr-grammar#3.4" },
+    { "code": "unsupported-invariant-property", "source": "trellis", "repair_class": "fix-spec", "spec_ref": "tr-grammar#4.2" },
+    { "code": "test-ungenerable-type", "source": "trellis", "repair_class": "fix-spec", "spec_ref": "tr-grammar#3.4" },
+    { "code": "oracle-error", "source": "trellis", "repair_class": "fix-config", "spec_ref": "tr-grammar#3.6" },
+    { "code": "preflight-contradiction", "source": "trellis", "repair_class": "fix-spec", "spec_ref": "design#4.5" },
+    { "code": "preflight-vacuous-requires", "source": "trellis", "repair_class": "fix-spec", "spec_ref": "design#4.5" },
+    { "code": "preflight-trivial-ensures", "source": "trellis", "repair_class": "fix-spec", "spec_ref": "design#4.5" },
+    { "code": "preflight-unexercised-variant", "source": "trellis", "repair_class": "fix-spec", "spec_ref": "design#4.5" }
   ]
 }

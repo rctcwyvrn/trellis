@@ -1,0 +1,184 @@
+TrFile {
+    name: "sorted",
+    tags: [],
+    kind: Function,
+    frontmatter_len: 21,
+    name_span: 4..17,
+    has_prose: true,
+    blocks: [
+        Block {
+            id: "soil-sig",
+            lang: "soil-sig",
+            name: None,
+            xfail: false,
+            agent: false,
+            span: 272..321,
+            content: "sorted : (xs : List F64) -> Bool\n",
+            payload: Sig(
+                Sig {
+                    name: "sorted",
+                    ty: Spanned {
+                        span: Span {
+                            start: 9,
+                            end: 32,
+                            line: 1,
+                            col: 10,
+                        },
+                        item: Arrow {
+                            param: Opt(
+                                Some(
+                                    Binder {
+                                        span: Span {
+                                            start: 10,
+                                            end: 12,
+                                            line: 1,
+                                            col: 11,
+                                        },
+                                        name: "xs",
+                                    },
+                                ),
+                            ),
+                            dom: Spanned {
+                                span: Span {
+                                    start: 15,
+                                    end: 23,
+                                    line: 1,
+                                    col: 16,
+                                },
+                                item: Con {
+                                    name: "List",
+                                    args: [
+                                        Spanned {
+                                            span: Span {
+                                                start: 20,
+                                                end: 23,
+                                                line: 1,
+                                                col: 21,
+                                            },
+                                            item: Con {
+                                                name: "F64",
+                                                args: [],
+                                            },
+                                        },
+                                    ],
+                                },
+                            },
+                            row: Row {
+                                effects: [],
+                                var: Opt(
+                                    None,
+                                ),
+                            },
+                            cod: Spanned {
+                                span: Span {
+                                    start: 28,
+                                    end: 32,
+                                    line: 1,
+                                    col: 29,
+                                },
+                                item: Con {
+                                    name: "Bool",
+                                    args: [],
+                                },
+                            },
+                        },
+                    },
+                },
+            ),
+        },
+        Block {
+            id: "test classifies",
+            lang: "test",
+            name: Some(
+                "classifies",
+            ),
+            xfail: false,
+            agent: false,
+            span: 322..476,
+            content: "([]) => true\n([2.0]) => true\n([1.0, 2.0, 2.0]) => true\n([2.0, 1.0]) => false\n([1.0, \"Inf\", \"NaN\"]) => true\n([\"NaN\", 1.0]) => false\n",
+            payload: Tests(
+                TestBlock {
+                    withs: [],
+                    cases: [
+                        TestCase {
+                            args: [
+                                Json(
+                                    Array [],
+                                ),
+                            ],
+                            outcome: Value(
+                                Bool(true),
+                            ),
+                        },
+                        TestCase {
+                            args: [
+                                Json(
+                                    Array [
+                                        Number(2.0),
+                                    ],
+                                ),
+                            ],
+                            outcome: Value(
+                                Bool(true),
+                            ),
+                        },
+                        TestCase {
+                            args: [
+                                Json(
+                                    Array [
+                                        Number(1.0),
+                                        Number(2.0),
+                                        Number(2.0),
+                                    ],
+                                ),
+                            ],
+                            outcome: Value(
+                                Bool(true),
+                            ),
+                        },
+                        TestCase {
+                            args: [
+                                Json(
+                                    Array [
+                                        Number(2.0),
+                                        Number(1.0),
+                                    ],
+                                ),
+                            ],
+                            outcome: Value(
+                                Bool(false),
+                            ),
+                        },
+                        TestCase {
+                            args: [
+                                Json(
+                                    Array [
+                                        Number(1.0),
+                                        String("Inf"),
+                                        String("NaN"),
+                                    ],
+                                ),
+                            ],
+                            outcome: Value(
+                                Bool(true),
+                            ),
+                        },
+                        TestCase {
+                            args: [
+                                Json(
+                                    Array [
+                                        String("NaN"),
+                                        Number(1.0),
+                                    ],
+                                ),
+                            ],
+                            outcome: Value(
+                                Bool(false),
+                            ),
+                        },
+                    ],
+                },
+            ),
+        },
+    ],
+}

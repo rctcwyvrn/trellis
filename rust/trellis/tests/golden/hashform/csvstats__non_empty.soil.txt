@@ -1,0 +1,2 @@
+non_empty : (xs : List F64) -> Bool
+non_empty %0 = len %0 > 0

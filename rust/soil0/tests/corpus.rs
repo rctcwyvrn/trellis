@@ -263,6 +263,22 @@ fn golden_test_bundle() {
     assert_eq!(String::from_utf8(out.stdout).unwrap(), expected);
 }
 
+/// Library and shelled binary agree byte-for-byte on the bundle
+/// report (impl plan 03 micro-pin §8.11: the daemon calls the
+/// library in-process; this keeps the CLI contract its oracle).
+#[test]
+fn library_test_agrees_with_binary() {
+    let dir = fixture_dir("bundles/read_file");
+    let bundle = dir.join("bundle.json");
+    let shelled = soil0(&["test", bundle.to_str().unwrap()]);
+    let (report, exit) = soil0::interp::cmd_test(bundle.to_str().unwrap()).expect("runs");
+    assert_eq!(exit, shelled.status.code().unwrap());
+    assert_eq!(
+        format!("{report}\n"),
+        String::from_utf8(shelled.stdout).unwrap()
+    );
+}
+
 /// `tests/reject/rename/<code>/program.json`: nonzero exit with the
 /// diagnostic code named by the directory.
 #[test]

@@ -1,0 +1,16 @@
+---
+name: onlyok
+---
+
+# onlyok
+
+Wraps an integer in `Ok`; the expect set never exercises `Err` — the
+unexercised-variant fixture.
+
+```soil-sig
+onlyok : (x : I64) -> Result I64 Utf8
+```
+
+```test cases
+(1) => {"tag": "Ok", "value": 1}
+```

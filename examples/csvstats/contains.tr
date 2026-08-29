@@ -1,0 +1,22 @@
+---
+name: contains
+---
+
+# contains
+
+Whether some cell of the list equals `x` under Soil's structural
+equality on `F64` (design §3.7) — a total relation: there is one
+logical `NaN`, equal to itself, and `-0.0` and `0.0` are distinct
+values.
+
+```soil-sig
+contains : (xs : List F64) -> (x : F64) -> Bool
+```
+
+```test classifies
+([1.0, 2.0], 2.0) => true
+([1.0, 2.0], 3.0) => false
+([], 1.0) => false
+(["NaN"], "NaN") => true
+([-0.0], 0.0) => false
+```

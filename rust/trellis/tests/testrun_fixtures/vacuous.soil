@@ -1,0 +1,2 @@
+vacuous : (x : I64) -> I64
+vacuous x = x

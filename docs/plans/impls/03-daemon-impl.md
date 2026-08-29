@@ -4,8 +4,9 @@
 That plan states the scope and exit criteria; this one states how the
 crate is structured and built, restates the decisions resolved with the
 user on 2026-08-22, and records the micro-details (§8, approved
-2026-08-24) and the newly surfaced spec gaps (§9, all resolved
-2026-08-24 and propagated to the spec docs).
+2026-08-24) and the newly surfaced spec gaps (§9, all resolved —
+2026-08-24, plus the step-7 batch on 2026-08-28 — and propagated to
+the spec docs).
 References: design §4 (specification layer, lowering, the daemon), §6
 (hashing and locks), §8 (toolchain pin), `docs/tr-grammar.md`,
 `docs/lock-schema.md`, `docs/contracts/soil0-cli.md` (frozen v1.1 — the
@@ -741,3 +742,41 @@ review pass) and propagated to the spec docs as noted.
     regeneration (step 5 partial, step 7 final byte-identity), locks
     for every `.tr`, `parse_row.soil` + `_private.soil` authored,
     provenance `human-verified` with provider/model absent.*
+
+11. **Step-7 resolutions (2026-08-28, with the user).** Five
+    decision points surfaced while building the test runner:
+    - *Invariant-derived properties are refused in v1*
+      (`unsupported-invariant-property`): generating `self` from the
+      bare structure tests exactly the values the invariant excludes —
+      the honest generator is constrained generation, deferred with
+      `where` filters to plan 05. Consequence: *type entries are
+      accepted-ungated in v1* (chosen over flipping `Row` to
+      unaccepted). Recorded in tr-grammar §4.2, lock-schema §8,
+      design §10. Rejected: checking the invariant over expect-test
+      values (a different, weaker check wearing a property's name) and
+      honest-failure rows (breaks the flagship example for a toolchain
+      gap, not a spec bug).
+    - *Definition-oracle rows are deferred* to plan 04: the daemon
+      records `reference`/`cli` oracle rows only. Recording (and
+      enforcing acceptance for) every helper a predicate mentions
+      would today flag `len`/`min`/`max`/`sort` — vocabulary the
+      prelude will absorb. Recorded in lock-schema §5, design §4.5.
+    - *Differential inputs are the expect cases' args* (§9.9's
+      "feeding the test's JSON args" read literally); generated-input
+      replay was rejected as seed-coupled and generation-quality-bound.
+    - *Expect/cram row naming is always `block#k`* (property rows stay
+      bare); lock-schema §5's stray "bare name for single-case blocks"
+      sentence was corrected to match its own example and the corpus.
+    - *The F64 generator keeps §8.12 as pinned* (finite plus the
+      specials). The flagship specs were **improved instead of the
+      generator weakened**: testing exposed that Soil's `F64`
+      comparisons are the derived total order (design §3.7 — one
+      logical NaN sorting last, `-0.0 < 0.0`), so `sort` is fully
+      specified with *no* domain guard (`sorted` + `is_permutation`
+      ensures), `median` keeps an `all_finite` requires because the
+      mean of `±Inf` middles is NaN (which sorts past `+Inf`, escaping
+      the bounds), `median.soil`'s even-length mean became
+      overflow-safe, and `examples/csvstats/` gained a predicate
+      vocabulary suite (`finite`, `all_finite`, `non_empty`, `sorted`,
+      `contains`, `count_of`, `is_permutation`) — authored like
+      `parse_row.soil`, provenance `human-verified`.

@@ -1,0 +1,17 @@
+---
+name: contra
+---
+
+# contra
+
+Identity on integers, specified contradictorily on purpose: the same
+input appears with two different expected outputs.
+
+```soil-sig
+contra : (x : I64) -> I64
+```
+
+```test cases
+(1) => 1
+(1) => 2
+```

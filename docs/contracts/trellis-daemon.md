@@ -361,8 +361,12 @@ type CodeEntry    = { code : Utf8
   byte-identical — the enrichment happens daemon-side).
 - Daemon codes are namespaced by prefix: `tr-…` (`.tr` validity),
   `config-…` (`soil.toml` / provider config), `lock-…`, `bundle-…`,
-  `job-…`, plus `toolchain-mismatch`, `budget-too-small`, `no-draft`,
-  `unknown-decision`, `unknown-spec-ref`, `unsupported-where-filter`.
+  `job-…`, `preflight-…` (the design §4.5 contradiction check and
+  vacuity probes — step 7), plus `toolchain-mismatch`,
+  `budget-too-small`, `no-draft`, `unknown-decision`,
+  `unknown-spec-ref`, `unsupported-where-filter`,
+  `unsupported-invariant-property`, `test-ungenerable-type`, and
+  `oracle-error`.
 
 ### 6.2 Initial repair classes
 

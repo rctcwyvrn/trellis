@@ -39,7 +39,11 @@
     },
     "holes": 0
   },
-  "tests": [],
+  "tests": [
+    { "name": "counts#1", "tier": "expect", "mode": "sandboxed", "origin": "spec", "result": "pass" },
+    { "name": "counts#2", "tier": "expect", "mode": "sandboxed", "origin": "spec", "result": "pass" },
+    { "name": "derived:ensures:non-negative", "tier": "property", "mode": "sandboxed", "origin": "derived", "result": "pass" }
+  ],
   "oracles": [],
   "accepted": false
 }

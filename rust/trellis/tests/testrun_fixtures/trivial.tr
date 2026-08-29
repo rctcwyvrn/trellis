@@ -1,0 +1,20 @@
+---
+name: trivial
+---
+
+# trivial
+
+Identity on integers with a tautological postcondition — the
+trivial-ensures fixture.
+
+```soil-sig
+trivial : (x : I64) -> I64
+```
+
+```ensures
+tauto: result == result
+```
+
+```test cases
+(1) => 1
+```

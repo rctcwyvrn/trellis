@@ -1,0 +1,25 @@
+---
+name: is_permutation
+---
+
+# is_permutation
+
+Whether two lists hold the same cells with the same multiplicities:
+equal lengths, and every cell of `xs` occurs equally often in both
+(`count_of`). Because Soil's `F64` equality is total (design §3.7 —
+one logical `NaN`, equal to itself), matching counts for every cell of
+`xs` plus equal lengths pin the whole multiset; the other direction
+need not be checked.
+
+```soil-sig
+is_permutation : (xs : List F64) -> (ys : List F64) -> Bool
+```
+
+```test classifies
+([1.0, 2.0, 1.0], [2.0, 1.0, 1.0]) => true
+([1.0, 2.0], [1.0, 3.0]) => false
+([1.0], [1.0, 1.0]) => false
+(["NaN"], [3.0]) => false
+(["NaN", -0.0], [-0.0, "NaN"]) => true
+([], []) => true
+```

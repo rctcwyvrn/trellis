@@ -1,0 +1,9 @@
+count_of : (xs : List F64) -> (x : F64) -> I64
+count_of %0 %1 =
+  let %2 = list_len %0 in
+  let rec %3 = fun %4 %5 ->
+    if %4 == %2
+    then %5
+    else %3 (%4 + 1) (if list_nth %0 %4 == %1 then %5 + 1 else %5)
+  in
+  %3 0 0

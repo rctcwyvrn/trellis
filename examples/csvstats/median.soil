@@ -1,8 +1,14 @@
-median : (xs : {v : List F64 | len v > 0}) -> {r : F64 | min xs <= r and r <= max xs}
+median : (xs : {v : List F64 | len v > 0 and all_finite v}) -> {r : F64 | min xs <= r and r <= max xs}
 median xs =
-  let sorted = sort xs in
-  let n = len sorted in
+  let ordered = sort xs in
+  let n = len ordered in
   let mid = n / 2 in
   if n % 2 == 1
-  then nth sorted mid
-  else (nth sorted (mid - 1) + nth sorted mid) / 2.0
+  then nth ordered mid
+  else
+    let a = nth ordered (mid - 1) in
+    let b = nth ordered mid in
+    let s = a + b in
+    if s - s == 0.0
+    then s / 2.0
+    else a / 2.0 + b / 2.0

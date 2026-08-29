@@ -137,10 +137,13 @@ fn forward(command: &str, args: &[&str]) -> i32 {
         Ok(Ok(result)) => {
             if method == "status" && !json_output {
                 render_status(&result);
+                EXIT_OK
+            } else if method == "test" && !json_output {
+                render_test(&result)
             } else {
                 println!("{result}");
+                EXIT_OK
             }
-            EXIT_OK
         }
         Ok(Err(error)) => {
             let report = error
@@ -199,6 +202,94 @@ fn render_status(report: &serde_json::Value) {
         for error in errors {
             eprintln!("error: {}", error);
         }
+    }
+}
+
+/// The human test summary (`--json` for the raw report): one line per
+/// definition, failing rows and diagnostics spelled out beneath.
+/// Exit 1 when any row fails (or xpasses) or any diagnostic fired —
+/// pre-flight findings are spec bugs, not noise.
+fn render_test(report: &serde_json::Value) -> i32 {
+    let Some(defs) = report.get("defs").and_then(|d| d.as_array()) else {
+        println!("{report}");
+        return EXIT_OK;
+    };
+    let mut failing = false;
+    for def in defs {
+        let path = def.get("path").and_then(|p| p.as_str()).unwrap_or("-");
+        let rows = def
+            .get("tests")
+            .and_then(|t| t.as_array())
+            .cloned()
+            .unwrap_or_default();
+        let mut passed = 0usize;
+        let mut bad: Vec<(String, String)> = Vec::new();
+        for row in &rows {
+            let name = row.get("name").and_then(|n| n.as_str()).unwrap_or("-");
+            let result = row.get("result").and_then(|r| r.as_str()).unwrap_or("-");
+            match result {
+                "pass" | "xfail" => passed += 1,
+                _ => bad.push((name.to_string(), result.to_string())),
+            }
+        }
+        let errors = def
+            .get("errors")
+            .and_then(|e| e.as_array())
+            .cloned()
+            .unwrap_or_default();
+        // `unsupported-*` refusals are documented v1 tier
+        // unavailability (where-filters, invariant properties) — shown
+        // but not failing; everything else demands spec attention.
+        let blocking = errors.iter().any(|e| {
+            !e.get("code")
+                .and_then(|c| c.as_str())
+                .is_some_and(|c| c.starts_with("unsupported-"))
+        });
+        println!(
+            "{path}: {passed}/{} {}",
+            rows.len(),
+            if bad.is_empty() && !blocking {
+                "ok"
+            } else {
+                failing = true;
+                "FAILING"
+            }
+        );
+        for (name, result) in &bad {
+            println!("  {name}: {result}");
+        }
+        if let Some(details) = def.get("details").and_then(|d| d.as_array()) {
+            for detail in details {
+                println!(
+                    "  {}: {}",
+                    detail.get("row").and_then(|r| r.as_str()).unwrap_or("-"),
+                    detail
+                        .get("message")
+                        .and_then(|m| m.as_str())
+                        .unwrap_or("-")
+                );
+            }
+        }
+        for error in &errors {
+            println!(
+                "  {}: {}",
+                error.get("code").and_then(|c| c.as_str()).unwrap_or("-"),
+                error.get("message").and_then(|m| m.as_str()).unwrap_or("-")
+            );
+        }
+        for note in def
+            .get("notes")
+            .and_then(|n| n.as_array())
+            .into_iter()
+            .flatten()
+        {
+            println!("  note: {}", note.as_str().unwrap_or("-"));
+        }
+    }
+    if failing {
+        1
+    } else {
+        EXIT_OK
     }
 }
 

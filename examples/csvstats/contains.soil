@@ -1,0 +1,12 @@
+contains : (xs : List F64) -> (x : F64) -> Bool
+contains xs x =
+  let n = list_len xs in
+  let rec go = fun i ->
+    if i == n
+    then False
+    else
+      if list_nth xs i == x
+      then True
+      else go (i + 1)
+  in
+  go 0

@@ -1,0 +1,25 @@
+---
+name: sat
+---
+
+# sat
+
+Identity on integers with a satisfied precondition and a meaningful
+postcondition — the non-firing counterpart of every probe.
+
+```soil-sig
+sat : (x : I64) -> I64
+```
+
+```requires
+pos: x > 0
+```
+
+```ensures
+kept: result == x
+```
+
+```test cases
+(1) => 1
+(2) => 2
+```

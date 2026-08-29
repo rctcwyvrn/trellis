@@ -303,7 +303,15 @@ Same clause grammar as `ensures`, with `self` bound to a value of the type.
 Invariants are properties every constructor must preserve (whether checked at
 every construction or proven at definition sites remains open, design §9.6).
 Each invariant clause auto-generates a property test (design §4.1), which is
-why type files carry no hand-written test blocks.
+why type files carry no hand-written test blocks. (Toolchain status,
+resolved 2026-08-28: the v1 runner **refuses** invariant-derived
+properties with `unsupported-invariant-property` — generating `self`
+from the bare structure would test values the invariant is precisely
+meant to exclude, i.e. the honest generator is constrained generation,
+which arrives with the plan-05 solver alongside `where` filters
+(§3.4). The invariant remains a `runtime` assurance in the lock's
+`checks`, and type acceptance is ungated in v1 (lock-schema §8). The
+format is unchanged.)
 
 ---
 

@@ -1,0 +1,2 @@
+onlyok : (x : I64) -> Result I64 Utf8
+onlyok x = Ok x

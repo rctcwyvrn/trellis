@@ -1,0 +1,17 @@
+---
+name: non_empty
+---
+
+# non_empty
+
+Whether a list has at least one cell — spec vocabulary for the
+`len(xs) > 0` preconditions.
+
+```soil-sig
+non_empty : (xs : List F64) -> Bool
+```
+
+```test classifies
+([]) => false
+([1.0]) => true
+```

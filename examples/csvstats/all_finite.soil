@@ -1,0 +1,12 @@
+all_finite : (xs : List F64) -> Bool
+all_finite xs =
+  let n = list_len xs in
+  let rec go = fun i ->
+    if i == n
+    then True
+    else
+      if finite (list_nth xs i)
+      then go (i + 1)
+      else False
+  in
+  go 0

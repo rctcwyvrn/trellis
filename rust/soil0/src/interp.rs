@@ -1734,6 +1734,76 @@ pub fn cmd_run(prog: Program, entry: &str, args_json: &str) -> Result<String, Di
     soil_rt::json::encode(&rt, &v).map_err(|e| runtime_panic(e.clone(), file))
 }
 
+/// In-process entry call for the daemon (plan 03 step 7): decode
+/// `args` positionally against the entry's parameter types (no
+/// capability injection — callers of this path are pure), apply, and
+/// canonically encode the result. The outer error is a pipeline
+/// problem (unknown entry, holes, undecodable args); the inner `Err`
+/// is a runtime panic, rendered `kind: message`.
+pub fn call_json(
+    s: &Session,
+    entry: &str,
+    args: &[serde_json::Value],
+) -> Result<Result<String, String>, Diagnostic> {
+    let entry_idx = resolve_def(&s.core.prog, entry)?;
+    check_no_holes(&s.core.prog, &s.rename_out, &s.infer_out, entry_idx)?;
+    let (param_tys, _) = param_and_result_tys(&s.core.prog, &s.core.prog.defs[entry_idx])?;
+    if args.len() != param_tys.len() {
+        return Err(Diagnostic::bare(
+            Code::MalformedInput,
+            format!(
+                "`{entry}` takes {} arguments, got {}",
+                param_tys.len(),
+                args.len()
+            ),
+        ));
+    }
+    let mut values = Vec::new();
+    for (ty, json) in param_tys.iter().zip(args) {
+        values.push(decode_arg(&s.core, ty, json)?);
+    }
+    let outcome: Result<Value, SoilError> = (|| {
+        let mut v = def_value(&s.core, entry_idx)?;
+        for a in values {
+            let Value::Closure(c) = &v else {
+                return Err(internal("arity"));
+            };
+            v = c.call(&[a])?;
+        }
+        Ok(v)
+    })();
+    match outcome {
+        Err(e) => Ok(Err(format!("{}: {}", e.kind.name(), e.message))),
+        Ok(v) => {
+            let rt = s.core.rt.borrow();
+            let text =
+                soil_rt::json::encode(&rt, &v).map_err(|e| runtime_panic(e.clone(), None))?;
+            Ok(Ok(text))
+        }
+    }
+}
+
+/// The entry's parameter and result types with refinements stripped —
+/// the daemon's bundle assembly and generators need the ground view.
+pub fn entry_tys(s: &Session, entry: &str) -> Result<(Vec<Ty>, Ty), Diagnostic> {
+    let entry_idx = resolve_def(&s.core.prog, entry)?;
+    param_and_result_tys(&s.core.prog, &s.core.prog.defs[entry_idx])
+}
+
+/// Canonical re-encode: decode `json` type-directedly against `ty`
+/// and re-encode (impl plan 02 §8.10 normalization) — the daemon's
+/// oracle comparison and preflight both go through this.
+pub fn canonical_json(
+    s: &Session,
+    ty: &Ty,
+    json: &serde_json::Value,
+) -> Result<String, Diagnostic> {
+    let v = decode_arg(&s.core, ty, json)?;
+    let rt = s.core.rt.borrow();
+    soil_rt::json::encode(&rt, &v)
+        .map_err(|e| Diagnostic::bare(Code::MalformedInput, e.message.clone()))
+}
+
 fn real_capability(i: &I, name: &str) -> Result<Value, SoilError> {
     match name {
         "World" => opaque(i, "World", Box::new(WorldTag)),
@@ -1837,11 +1907,22 @@ pub fn cmd_test(bundle_path: &str) -> Result<(String, i32), Diagnostic> {
         .unwrap_or(std::path::Path::new("."));
     let manifest = dir.join(&bundle.program);
     let prog = crate::manifest::load_program(manifest.to_str().unwrap_or(&bundle.program))?;
-    let s = session(prog)?;
+    run_cases(&session(prog)?, &bundle.cases)
+}
 
+/// In-process bundle running for the daemon (plan 03 step 7): the
+/// bundle document is contract §10 verbatim, but the program is
+/// supplied directly and the bundle's `program` path is ignored.
+pub fn run_bundle(prog: Program, bundle_text: &str) -> Result<(String, i32), Diagnostic> {
+    let bundle: Bundle = serde_json::from_str(bundle_text)
+        .map_err(|e| Diagnostic::bare(Code::MalformedInput, format!("bundle: {e}")))?;
+    run_cases(&session(prog)?, &bundle.cases)
+}
+
+fn run_cases(s: &Session, cases: &[Case]) -> Result<(String, i32), Diagnostic> {
     let mut out = Vec::new();
     let mut failing = false;
-    for case in &bundle.cases {
+    for case in cases {
         let def_idx = resolve_def(&s.core.prog, &case.def)?;
         check_no_holes(&s.core.prog, &s.rename_out, &s.infer_out, def_idx)?;
         let (param_tys, result_ty) =

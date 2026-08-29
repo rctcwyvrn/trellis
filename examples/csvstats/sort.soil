@@ -1,4 +1,4 @@
-sort : (xs : List F64) -> List F64
+sort : (xs : List F64) -> {r : List F64 | sorted r and is_permutation xs r}
 sort xs =
   let rec insert = fun x ys ->
     let n = list_len ys in

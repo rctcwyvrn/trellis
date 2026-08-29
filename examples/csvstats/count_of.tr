@@ -1,0 +1,20 @@
+---
+name: count_of
+---
+
+# count_of
+
+How many cells of the list equal `x` under Soil's structural equality
+on `F64` (design §3.7) — the multiset view `is_permutation` is built
+on. Equality is total, so `NaN` cells count like any other value.
+
+```soil-sig
+count_of : (xs : List F64) -> (x : F64) -> I64
+```
+
+```test counts
+([1.0, 2.0, 1.0], 1.0) => 2
+([1.0, 2.0], 3.0) => 0
+([], 1.0) => 0
+(["NaN", 1.0, "NaN"], "NaN") => 2
+```

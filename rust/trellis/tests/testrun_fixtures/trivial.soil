@@ -1,0 +1,2 @@
+trivial : (x : I64) -> I64
+trivial x = x

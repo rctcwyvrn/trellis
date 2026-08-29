@@ -1,0 +1,21 @@
+---
+name: finite
+---
+
+# finite
+
+Whether a float is finite — neither `NaN` nor an infinity. The test is
+`x - x == 0.0`: subtraction of a finite value from itself is exactly
+zero, while `NaN - NaN` and `Inf - Inf` are both `NaN`.
+
+```soil-sig
+finite : (x : F64) -> Bool
+```
+
+```test classifies
+(1.0) => true
+(-0.0) => true
+("NaN") => false
+("Inf") => false
+("-Inf") => false
+```

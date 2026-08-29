@@ -1,0 +1,17 @@
+---
+name: wherefilter
+---
+
+# wherefilter
+
+Identity on integers with a `where`-filtered property — the v1
+refusal fixture (tr-grammar §3.4 toolchain note).
+
+```soil-sig
+wherefilter : (x : I64) -> I64
+```
+
+```property monotone
+forall x : I64 where x > 0
+wherefilter x >= x
+```

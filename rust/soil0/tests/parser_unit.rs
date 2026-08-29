@@ -104,9 +104,17 @@ fn median_refinements_and_juxtaposed_predicate_calls() {
         panic!("refined dom")
     };
     assert_eq!(binder.name, "v");
+    // Domain refinement: len v > 0 and all_finite v
+    let Pred::PAnd {
+        lhs: conj_l,
+        rhs: conj_r,
+    } = &pred.item
+    else {
+        panic!("conjunction")
+    };
     let Pred::PCmp {
         op: CmpOp::Gt, lhs, ..
-    } = &pred.item
+    } = &conj_l.item
     else {
         panic!("cmp")
     };
@@ -114,6 +122,11 @@ fn median_refinements_and_juxtaposed_predicate_calls() {
         panic!("juxtaposed call")
     };
     assert_eq!(name, "len");
+    assert_eq!(args.len(), 1);
+    let Pred::PCall { name, args } = &conj_r.item else {
+        panic!("juxtaposed predicate call")
+    };
+    assert_eq!(name, "all_finite");
     assert_eq!(args.len(), 1);
     // Codomain: { r : F64 | min xs <= r and r <= max xs }
     let Type::Refined { pred: rpred, .. } = &cod.item else {

@@ -6,9 +6,9 @@
   "spec": {
     "provenance": "human",
     "hashes": {
-      "formal": "sha256:0d26f62b2353c4cd4ae8daea09298d8f7cb7faf02ae311d9a3ebd227d0fc9d75",
-      "test": "sha256:a38ac641e123d5e77f1ae9cfe41fc70e5284d5574de9ba43db10ac6f42982aaf",
-      "prose": "sha256:99a9364127e29d86a16692b2daaad6afcd3938a8b4fee067e84e3a9bd6fbfd47"
+      "formal": "sha256:8efa23f9ee5e01193b92be29c015233544916d41e0957938a721d5ee9d706a43",
+      "test": "sha256:63929b6a73266fabd7ec20a7c54389b5a463e91780d40facdd3bc7b84f836800",
+      "prose": "sha256:51f17924a3f698e3d6c289ee0fb8946d8cad30d5ee8ecc603c34fe736d3a75d3"
     },
     "prose_state": "fresh",
     "blocks": [
@@ -19,21 +19,21 @@
       { "block": "test odd-length", "author": "human" },
       { "block": "test even-length", "author": "human" },
       { "block": "test single", "author": "human" },
-      { "block": "property order-independent", "author": "human" }
+      { "block": "property sort-invariant", "author": "human" }
     ],
     "pinned": true,
     "escape_hatches": []
   },
   "lowering": {
-    "soil_hash": "sha256:403efdb4f2fa53f2d5dafa77653a8f5278c2bdd71fa29790faa5efd93f44b453",
+    "soil_hash": "sha256:2ab06f664670b3982b5a1dbbb2213cabc4d4f61aa1174f685aa2f6fe5fd901a7",
     "provenance": "human-verified",
     "provider": null,
     "model": null,
     "private_helpers": [],
     "calls": [
-      { "name": "sort", "hash": "sha256:254a76b1c427e27822c063b547573303a74a81124ed7afecd381adf9c5647fd9" },
       { "name": "len", "hash": "sha256:1d0db7042147887e451444fd609243b27aabb1fd18bfe3fb678823dc2f1e1d8e" },
-      { "name": "nth", "hash": "sha256:d32fd45ca339a7f7cc735e362a3e2621dbd451c2f732fc06f0de82e63e4a9c7c" }
+      { "name": "nth", "hash": "sha256:d32fd45ca339a7f7cc735e362a3e2621dbd451c2f732fc06f0de82e63e4a9c7c" },
+      { "name": "sort", "hash": "sha256:ecb7c98a9c4fbcc3a802c3c224067136fc92df2c39bb7501277ee82c759a8188" }
     ],
     "decisions": {
       "scope_hash": "sha256:af5570f5a1810b7af78caf4bc70a660f0df51e42baf91d4de5b2328de0e83dfc",
@@ -44,6 +44,7 @@
     "types": "ok",
     "termination": "verified",
     "refinements": {
+      "all-finite": "runtime",
       "lower bound": "runtime",
       "non-empty": "runtime",
       "upper bound": "runtime"
@@ -54,7 +55,7 @@
     { "name": "odd-length#1", "tier": "expect", "mode": "sandboxed", "origin": "spec", "result": "pass" },
     { "name": "even-length#1", "tier": "expect", "mode": "sandboxed", "origin": "spec", "result": "pass" },
     { "name": "single#1", "tier": "expect", "mode": "sandboxed", "origin": "spec", "result": "pass" },
-    { "name": "order-independent", "tier": "property", "mode": "sandboxed", "origin": "spec", "result": "pass" },
+    { "name": "sort-invariant", "tier": "property", "mode": "sandboxed", "origin": "spec", "result": "pass" },
     { "name": "derived:ensures:lower bound", "tier": "property", "mode": "sandboxed", "origin": "derived", "result": "pass" },
     { "name": "derived:ensures:upper bound", "tier": "property", "mode": "sandboxed", "origin": "derived", "result": "pass" },
     { "name": "derived:differential:ref/stats.py::median", "tier": "differential", "mode": "sandboxed", "origin": "derived", "result": "pass" }

@@ -1,0 +1,6 @@
+# Step-7 pre-flight fixtures (impl plan 03): each definition makes
+# exactly one probe fire; `sat` fires nothing.
+
+[toolchain]
+trellis = "0.1.0"
+soil0_cli = 1

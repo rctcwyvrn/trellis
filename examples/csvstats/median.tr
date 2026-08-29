@@ -4,8 +4,11 @@ name: median
 
 # median
 
-Returns the median of a non-empty list of floats. For an even number of
-elements, returns the mean of the two middle elements.
+Returns the median of a non-empty list of finite floats. For an even
+number of elements, returns the mean of the two middle elements. The
+bounds below need the all-finite domain: the mean of middles `-Inf`
+and `+Inf` is `NaN`, which sorts *after* `+Inf` in Soil's total order
+on `F64` (design §3.7) and so escapes `result <= max(xs)`.
 
 ```soil-sig
 median : (xs : List F64) -> F64
@@ -13,6 +16,7 @@ median : (xs : List F64) -> F64
 
 ```requires
 non-empty: len(xs) > 0
+all-finite: all_finite xs
 ```
 
 ```ensures
@@ -39,7 +43,11 @@ ref/stats.py::median
 ([42.0]) => 42.0
 ```
 
-```property order-independent
-forall xs : List F64 where len(xs) > 0
-median(xs) == median(reverse(xs))
+Sorting first never changes the answer, and under the total order this
+holds for *every* non-empty list — even `NaN`-bearing ones, since both
+sides reduce to the same middles of the same sorted list.
+
+```property sort-invariant
+forall xs : List F64
+len(xs) > 0 implies median (sort xs) == median xs
 ```

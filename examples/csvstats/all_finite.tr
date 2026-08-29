@@ -1,0 +1,22 @@
+---
+name: all_finite
+---
+
+# all_finite
+
+Whether every cell of a list is finite (`finite`). The empty list is
+vacuously all-finite. This is the domain guard the statistics
+functions' specs use: infinities break bounds clauses (the mean of
+`-Inf` and `+Inf` is `NaN`, which sorts after `+Inf` in the total
+order, design §3.7).
+
+```soil-sig
+all_finite : (xs : List F64) -> Bool
+```
+
+```test classifies
+([]) => true
+([1.0, -0.0, 2.5]) => true
+([1.0, "NaN", 2.5]) => false
+(["-Inf"]) => false
+```

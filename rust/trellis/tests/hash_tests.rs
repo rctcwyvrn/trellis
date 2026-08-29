@@ -230,7 +230,7 @@ fn decision_addition_moves_only_the_scope_hash() {
 #[test]
 fn local_rename_does_not_move_soil_hash() {
     let src = fs::read_to_string(examples().join("csvstats/median.soil")).expect("readable");
-    let renamed = src.replace("sorted", "ordered");
+    let renamed = src.replace("ordered", "arranged");
     assert_ne!(src, renamed, "rename mutation did not apply");
     let a = soil0::hashform::hash_form_file(&src, "median.soil").expect("form");
     let b = soil0::hashform::hash_form_file(&renamed, "median.soil").expect("form");

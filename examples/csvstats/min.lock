@@ -43,7 +43,11 @@
     },
     "holes": 0
   },
-  "tests": [],
+  "tests": [
+    { "name": "smallest#1", "tier": "expect", "mode": "sandboxed", "origin": "spec", "result": "pass" },
+    { "name": "smallest#2", "tier": "expect", "mode": "sandboxed", "origin": "spec", "result": "pass" },
+    { "name": "empty#1", "tier": "expect", "mode": "sandboxed", "origin": "spec", "result": "pass" }
+  ],
   "oracles": [],
   "accepted": false
 }
