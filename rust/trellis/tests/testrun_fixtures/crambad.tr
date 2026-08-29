@@ -1,0 +1,19 @@
+---
+name: crambad
+---
+
+# crambad
+
+A transcript whose expectations are wrong on purpose: the first step
+expects the wrong output, the second the wrong exit code.
+
+```soil-sig
+crambad : (x : I64) -> I64
+```
+
+```cram wrong
+$ echo actual
+expected
+$ true
+[3]
+```

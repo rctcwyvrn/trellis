@@ -1,0 +1,23 @@
+---
+name: cramgood
+---
+
+# cramgood
+
+A hermetic transcript exercising fixtures, session state, and exit
+codes — the green cram fixture.
+
+```soil-sig
+cramgood : (x : I64) -> I64
+```
+
+```cram session
+with file "greeting.txt" = "hello\n"
+$ cat greeting.txt
+hello
+$ MSG=world
+$ echo "$MSG"
+world
+$ false
+[1]
+```

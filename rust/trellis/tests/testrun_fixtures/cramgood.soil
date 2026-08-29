@@ -1,0 +1,2 @@
+cramgood : (x : I64) -> I64
+cramgood x = x

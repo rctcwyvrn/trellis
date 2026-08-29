@@ -13,6 +13,7 @@
 
 pub mod cli;
 pub mod config;
+pub mod cram;
 pub mod daemon;
 pub mod diag;
 pub mod envgen;

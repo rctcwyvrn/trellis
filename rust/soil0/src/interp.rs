@@ -1692,13 +1692,27 @@ pub fn session(prog: Program) -> Result<Session, Diagnostic> {
 
 pub fn cmd_run(prog: Program, entry: &str, args_json: &str) -> Result<String, Diagnostic> {
     let s = session(prog)?;
+    let args: Vec<serde_json::Value> = serde_json::from_str(args_json)
+        .map_err(|e| Diagnostic::bare(Code::Usage, format!("--args must be a JSON array: {e}")))?;
+    run_json(&s, entry, &args)
+}
+
+/// The contract §8.6 injection semantics, in-process (the daemon's
+/// `trellis call` mirrors `run` through this, plan 03 step 8):
+/// capability-typed parameters are injected from a real `World` in
+/// order, the remaining parameters decode type-directedly from `args`
+/// positionally, the result encodes canonically. A runtime `SoilError`
+/// is the structured `runtime-panic` diagnostic.
+pub fn run_json(
+    s: &Session,
+    entry: &str,
+    args: &[serde_json::Value],
+) -> Result<String, Diagnostic> {
     let entry_idx = resolve_def(&s.core.prog, entry)?;
     check_no_holes(&s.core.prog, &s.rename_out, &s.infer_out, entry_idx)?;
     let (param_tys, _) = param_and_result_tys(&s.core.prog, &s.core.prog.defs[entry_idx])?;
 
-    let args: Vec<serde_json::Value> = serde_json::from_str(args_json)
-        .map_err(|e| Diagnostic::bare(Code::Usage, format!("--args must be a JSON array: {e}")))?;
-    let mut arg_iter = args.into_iter();
+    let mut arg_iter = args.iter();
     let mut values = Vec::new();
     for ty in &param_tys {
         if let Ty::Con { name, .. } = ty {
@@ -1710,7 +1724,7 @@ pub fn cmd_run(prog: Program, entry: &str, args_json: &str) -> Result<String, Di
         let json = arg_iter.next().ok_or_else(|| {
             Diagnostic::bare(Code::Usage, "too few arguments for the entry".to_string())
         })?;
-        values.push(decode_arg(&s.core, ty, &json)?);
+        values.push(decode_arg(&s.core, ty, json)?);
     }
     if arg_iter.next().is_some() {
         return Err(Diagnostic::bare(

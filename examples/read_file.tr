@@ -22,5 +22,5 @@ One real-mode test against the actual filesystem:
 ```cram real-read
 with file "config.toml" = "port = 8080"
 $ trellis call read_file '"config.toml"'
-{"tag": "Ok", "value": "port = 8080"}
+{"tag":"Ok","value":"port = 8080"}
 ```

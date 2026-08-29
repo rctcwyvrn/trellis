@@ -1,11 +1,11 @@
-//! The examples regeneration driver, step-7 form (impl plan 03
-//! §9.10): every `examples/**/*.lock` is rebuilt from the daemon's
-//! real pipeline — scan, compile (rename-derived edges, content
-//! hashes), and the step-7 test runner (real rows, real oracle
-//! hashes) — blessed with `TRELLIS_BLESS=1` and byte-compared
-//! otherwise. This is the round-trip exit criterion in continuous
-//! form; only the per-entry *policy* (pinned, accepted, provenance,
-//! the carried step-8 cram rows) remains declared by hand.
+//! The examples regeneration driver (impl plan 03 §9.10): every
+//! `examples/**/*.lock` is rebuilt from the daemon's real pipeline —
+//! scan, compile (rename-derived edges, content hashes), and the test
+//! runner (real rows, real oracle hashes; since step 8 the cram
+//! transcripts execute for real too) — blessed with `TRELLIS_BLESS=1`
+//! and byte-compared otherwise. This is the round-trip exit criterion
+//! in continuous form; only the per-entry *policy* (pinned, accepted,
+//! provenance) remains declared by hand.
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -80,9 +80,9 @@ fn check_lock(rel: &str, lock: Lock) {
     }
 }
 
-/// Per-entry policy: what the pipeline cannot derive. `pinned` and
-/// `accepted` are human declarations; the cram row is carried until
-/// step 8 runs it for real.
+/// Per-entry policy: what the pipeline cannot derive — `pinned` and
+/// `accepted` are human declarations. (Step 8: cram rows are no
+/// longer carried; the runner executes the transcripts for real.)
 fn policy(rel: &str) -> (bool, bool) {
     match rel {
         // (pinned, accepted)
@@ -93,21 +93,12 @@ fn policy(rel: &str) -> (bool, bool) {
     }
 }
 
-fn carried_rows(rel: &str) -> Vec<TestRow> {
-    match rel {
-        "read_file" => vec![TestRow {
-            name: "real-read#1".into(),
-            tier: "cram".into(),
-            mode: "real".into(),
-            origin: "spec".into(),
-            result: "pass".into(),
-        }],
-        _ => vec![],
-    }
-}
-
 #[test]
 fn examples_locks_regenerate() {
+    // The cram runner puts the `trellis` binary on the transcripts'
+    // PATH; inside cargo tests the current executable is the test
+    // binary, so point it at the built one.
+    std::env::set_var("TRELLIS_BIN", env!("CARGO_BIN_EXE_trellis"));
     let root_path = examples();
     let config = trellis::config::load(&root_path).expect("soil.toml");
     let root = state::scan(&root_path, &config).expect("examples scan");
@@ -115,8 +106,7 @@ fn examples_locks_regenerate() {
 
     for entry in root.entries.values() {
         let (pinned, accepted) = policy(&entry.rel);
-        let carried = carried_rows(&entry.rel);
-        let outcome = testrun::test_def(&root, entry, &carried)
+        let outcome = testrun::test_def(&root, entry)
             .unwrap_or_else(|e| panic!("{}: {}", entry.rel, e.render()));
 
         // The only expected diagnostic in the whole corpus is Row's

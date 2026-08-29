@@ -1,0 +1,2 @@
+crambad : (x : I64) -> I64
+crambad x = x

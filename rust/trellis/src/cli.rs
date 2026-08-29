@@ -16,13 +16,16 @@ const USAGE: &str = "usage: trellis <command> [args] | trellis --version\n\
 /// Commands forwarded to the daemon as same-named methods (step 2:
 /// they dispatch, hit the pin gate where mutating, and report
 /// unimplemented — the full path exists before the features do).
-const FORWARDED: [&str; 12] = [
+/// `call` is deliberately absent: it executes in the client (resolved
+/// 2026-08-28, step 8) so relative paths in the real `Fs` resolve
+/// against the caller's working directory — the cram temp dir, not
+/// the daemon's cwd.
+const FORWARDED: [&str; 11] = [
     "check",
     "status",
     "refresh",
     "lower",
     "test",
-    "call",
     "repl",
     "context",
     "answer",
@@ -46,6 +49,7 @@ pub fn run(args: &[String]) -> i32 {
             EXIT_OK
         }
         Some("daemon") => daemon_command(&args.collect::<Vec<_>>()),
+        Some("call") => call_command(&args.collect::<Vec<_>>()),
         Some(command) if FORWARDED.contains(&command) => {
             forward(command, &args.collect::<Vec<_>>())
         }
@@ -109,6 +113,56 @@ fn daemon_command(args: &[&str]) -> i32 {
             EXIT_OK
         }
         _ => usage(),
+    }
+}
+
+/// `trellis call <def> <json-arg>…` (tr-grammar §3.5, contract §8.6
+/// semantics): client-local — compile the root through the linked
+/// soil0, inject real `World`-derived capabilities in order, decode
+/// the JSON args positionally, print the result's canonical JSON.
+/// Read-only: no pin gate, no lock writes, no daemon.
+fn call_command(args: &[&str]) -> i32 {
+    let Some((def, json_args)) = args.split_first() else {
+        eprintln!(
+            "{}",
+            ErrorReport::one("usage", "usage: trellis call <def> <json-arg>…").render()
+        );
+        return EXIT_USAGE;
+    };
+    let mut parsed = Vec::new();
+    for arg in json_args {
+        match serde_json::from_str::<serde_json::Value>(arg) {
+            Ok(v) => parsed.push(v),
+            Err(e) => {
+                return render_error(&ErrorReport::one(
+                    "usage",
+                    format!("argument `{arg}` is not JSON: {e}"),
+                ))
+            }
+        }
+    }
+    let root = match discovered_root() {
+        Ok(root) => root,
+        Err(code) => return code,
+    };
+    let run = || -> Result<String, ErrorReport> {
+        let config = crate::config::load(&root)?;
+        let scanned = crate::state::scan(&root, &config)?;
+        let assembly = crate::state::assemble(&scanned)?;
+        let soil0_report = |d: soil0::diag::Diagnostic| ErrorReport {
+            errors: vec![crate::registry::enrich(crate::diag::Diag::from_soil0(&d))],
+        };
+        let program =
+            soil0::manifest::from_parts(assembly.env, &assembly.ordered).map_err(soil0_report)?;
+        let session = soil0::interp::session(program).map_err(soil0_report)?;
+        soil0::interp::run_json(&session, def, &parsed).map_err(soil0_report)
+    };
+    match run() {
+        Ok(json) => {
+            println!("{json}");
+            EXIT_OK
+        }
+        Err(report) => render_error(&report),
     }
 }
 

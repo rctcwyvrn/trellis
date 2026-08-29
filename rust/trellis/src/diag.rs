@@ -54,6 +54,20 @@ impl Diag {
         self.span = Some(span);
         self
     }
+
+    /// A soil0 diagnostic, carried across unchanged (code, message,
+    /// file, span); registry enrichment happens at the boundary.
+    pub fn from_soil0(d: &soil0::diag::Diagnostic) -> Self {
+        let mut diag = Diag::new(d.code.as_str(), d.message.clone());
+        diag.file = d.file.0.clone();
+        diag.span = d.span.0.map(|s| Span {
+            start: s.start,
+            end: s.end,
+            line: s.line,
+            col: s.col,
+        });
+        diag
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

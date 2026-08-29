@@ -24,7 +24,7 @@ const MUTATING: [&str; 6] = [
     "toolchain_update",
     "decisions_editorial",
 ];
-const READ_ONLY: [&str; 6] = ["check", "status", "context", "call", "repl", "skill"];
+const READ_ONLY: [&str; 5] = ["check", "status", "context", "repl", "skill"];
 
 struct State {
     root: PathBuf,

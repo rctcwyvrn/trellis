@@ -53,8 +53,8 @@ fn bundle_assembly_matches_soil0_fixture() {
 fn property_runs_are_deterministic() {
     let root = scan(&examples());
     let entry = &root.entries["csvstats/median"];
-    let a = testrun::test_def(&root, entry, &[]).expect("run a");
-    let b = testrun::test_def(&root, entry, &[]).expect("run b");
+    let a = testrun::test_def(&root, entry).expect("run a");
+    let b = testrun::test_def(&root, entry).expect("run b");
     assert_eq!(a.tests, b.tests);
     assert_eq!(
         a.details.iter().map(|d| &d.message).collect::<Vec<_>>(),
@@ -65,7 +65,7 @@ fn property_runs_are_deterministic() {
 fn fixture_codes(name: &str) -> Vec<String> {
     let root = scan(&fixtures());
     let entry = &root.entries[name];
-    let outcome = testrun::test_def(&root, entry, &[]).expect("fixture runs");
+    let outcome = testrun::test_def(&root, entry).expect("fixture runs");
     outcome.errors.iter().map(|d| d.code.clone()).collect()
 }
 
@@ -100,7 +100,7 @@ fn where_filter_is_refused() {
 fn sat_fires_nothing() {
     let root = scan(&fixtures());
     let entry = &root.entries["sat"];
-    let outcome = testrun::test_def(&root, entry, &[]).expect("runs");
+    let outcome = testrun::test_def(&root, entry).expect("runs");
     assert!(outcome.errors.is_empty(), "{:?}", outcome.errors);
     let derived: Vec<(&str, &str)> = outcome
         .tests
@@ -111,13 +111,52 @@ fn sat_fires_nothing() {
     assert_eq!(derived, [("derived:ensures:kept", "pass")]);
 }
 
+/// The green cram fixture: fixtures land in the temp dir, shell state
+/// persists across steps (one session), and `[n]` exit codes match.
+#[test]
+fn cram_session_passes() {
+    let root = scan(&fixtures());
+    let outcome = testrun::test_def(&root, &root.entries["cramgood"]).expect("runs");
+    assert!(outcome.errors.is_empty(), "{:?}", outcome.errors);
+    let rows: Vec<(&str, &str, &str)> = outcome
+        .tests
+        .iter()
+        .map(|r| (r.name.as_str(), r.mode.as_str(), r.result.as_str()))
+        .collect();
+    assert_eq!(
+        rows,
+        [
+            ("session#1", "real", "pass"),
+            ("session#2", "real", "pass"),
+            ("session#3", "real", "pass"),
+            ("session#4", "real", "pass"),
+        ]
+    );
+}
+
+/// Output and exit-code mismatches each fail their own step, with the
+/// literal diff in the report details.
+#[test]
+fn cram_mismatches_fail() {
+    let root = scan(&fixtures());
+    let outcome = testrun::test_def(&root, &root.entries["crambad"]).expect("runs");
+    let rows: Vec<(&str, &str)> = outcome
+        .tests
+        .iter()
+        .map(|r| (r.name.as_str(), r.result.as_str()))
+        .collect();
+    assert_eq!(rows, [("wrong#1", "fail"), ("wrong#2", "fail")]);
+    assert!(outcome.details[0].message.contains("output mismatch"));
+    assert!(outcome.details[1].message.contains("exit 0, expected 3"));
+}
+
 /// The contradictory pair still runs: the second expectation records
 /// its honest `fail` while the pre-flight names the contradiction.
 #[test]
 fn contradictory_pair_rows() {
     let root = scan(&fixtures());
     let entry = &root.entries["contra"];
-    let outcome = testrun::test_def(&root, entry, &[]).expect("runs");
+    let outcome = testrun::test_def(&root, entry).expect("runs");
     let rows: Vec<(&str, &str)> = outcome
         .tests
         .iter()

@@ -217,8 +217,8 @@ TrFile {
             ),
             xfail: false,
             agent: false,
-            span: 574..715,
-            content: "with file \"config.toml\" = \"port = 8080\"\n$ trellis call read_file '\"config.toml\"'\n{\"tag\": \"Ok\", \"value\": \"port = 8080\"}\n",
+            span: 574..712,
+            content: "with file \"config.toml\" = \"port = 8080\"\n$ trellis call read_file '\"config.toml\"'\n{\"tag\":\"Ok\",\"value\":\"port = 8080\"}\n",
             payload: Cram(
                 CramBlock {
                     files: [
@@ -231,7 +231,7 @@ TrFile {
                         CramStep {
                             command: "trellis call read_file '\"config.toml\"'",
                             output: [
-                                "{\"tag\": \"Ok\", \"value\": \"port = 8080\"}",
+                                "{\"tag\":\"Ok\",\"value\":\"port = 8080\"}",
                             ],
                             exit: 0,
                         },

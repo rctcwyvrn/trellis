@@ -342,37 +342,29 @@ fn wrapper(dir: &str, name: &str, params: &[(String, String)], body: &str) -> Wr
 
 // ---- the runner ----
 
-/// Test one definition (function or type): the sandboxed tiers only.
-/// `carried_real` holds the previous lock's `mode: real` rows (cram —
-/// re-run arrives with step 8), re-inserted at their block positions.
+/// Test one definition (function or type): every tier, cram (mode
+/// `real`) included since step 8 — the real-mode exclusion is about
+/// the lowering sandbox (the MCP `run_tests` tool), not the human CLI.
 ///
 /// Runs on its own generously-stacked thread: the soil0 interpreter
 /// recurses with the program (deep `let rec` evaluation), and the
 /// 2 MiB spawned-thread default is too small for real property runs
 /// regardless of which thread the caller happens to be on.
-pub fn test_def(
-    root: &Root,
-    entry: &Entry,
-    carried_real: &[TestRow],
-) -> Result<Outcome, ErrorReport> {
+pub fn test_def(root: &Root, entry: &Entry) -> Result<Outcome, ErrorReport> {
     std::thread::scope(|scope| {
         std::thread::Builder::new()
             .stack_size(256 * 1024 * 1024)
-            .spawn_scoped(scope, || test_def_inner(root, entry, carried_real))
+            .spawn_scoped(scope, || test_def_inner(root, entry))
             .expect("spawn test thread")
             .join()
             .unwrap_or_else(|panic| std::panic::resume_unwind(panic))
     })
 }
 
-fn test_def_inner(
-    root: &Root,
-    entry: &Entry,
-    carried_real: &[TestRow],
-) -> Result<Outcome, ErrorReport> {
+fn test_def_inner(root: &Root, entry: &Entry) -> Result<Outcome, ErrorReport> {
     match entry.kind {
         FileKind::Type => Ok(type_outcome(root, entry)),
-        FileKind::Function if entry.soil.is_some() => function_outcome(root, entry, carried_real),
+        FileKind::Function if entry.soil.is_some() => function_outcome(root, entry),
         _ => Ok(Outcome::default()),
     }
 }
@@ -420,11 +412,7 @@ fn diagf(errors: &mut Vec<Diag>, d: Diag) {
     errors.push(registry::enrich(d));
 }
 
-fn function_outcome(
-    root: &Root,
-    entry: &Entry,
-    carried_real: &[TestRow],
-) -> Result<Outcome, ErrorReport> {
+fn function_outcome(root: &Root, entry: &Entry) -> Result<Outcome, ErrorReport> {
     let mut out = Outcome::default();
     let def = entry.tr.name.clone();
     let module = entry
@@ -726,12 +714,30 @@ fn function_outcome(
                     out.tests.push(row);
                 }
             }
-            Payload::Cram(_) => {
+            Payload::Cram(cram) => {
                 let block_name = block.name.clone().unwrap_or_default();
-                let prefix = format!("{block_name}#");
-                for row in carried_real {
-                    if row.mode == "real" && row.name.starts_with(&prefix) {
-                        out.tests.push(row.clone());
+                let cram_out = crate::cram::run_block(&root.root, cram);
+                out.errors.extend(cram_out.errors);
+                for (k, step) in cram_out.steps.iter().enumerate() {
+                    let name = format!("{block_name}#{}", k + 1);
+                    let result = match (step.passed, block.xfail) {
+                        (true, false) => "pass",
+                        (true, true) => "xpass",
+                        (false, true) => "xfail",
+                        (false, false) => "fail",
+                    };
+                    out.tests.push(TestRow {
+                        name: name.clone(),
+                        tier: "cram".into(),
+                        mode: "real".into(),
+                        origin: "spec".into(),
+                        result: result.into(),
+                    });
+                    if let Some(detail) = &step.detail {
+                        out.details.push(Detail {
+                            row: name,
+                            message: detail.clone(),
+                        });
                     }
                 }
             }
@@ -1165,15 +1171,7 @@ pub fn run(
 
     let mut defs = Vec::new();
     for entry in targets {
-        let carried: Vec<TestRow> = entry
-            .lock
-            .as_ref()
-            .and_then(|l| l.tests.clone())
-            .unwrap_or_default()
-            .into_iter()
-            .filter(|r| r.mode == "real")
-            .collect();
-        let outcome = test_def(&root, entry, &carried)?;
+        let outcome = test_def(&root, entry)?;
         let mut notes = Vec::new();
 
         // Merge into the sidecar.

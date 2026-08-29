@@ -191,3 +191,77 @@ fn config_errors_surface_through_the_gate() {
     assert_eq!(out.status.code(), Some(1));
     assert!(stderr(&out).contains("config-reserved-section"));
 }
+
+// ---- `trellis call` (step 8): client-local, contract §8.6 semantics ----
+
+/// Run the binary in `cwd` with TRELLIS_ROOT pointed at examples/ —
+/// the cram-transcript shape (temp cwd, root by env; no daemon).
+fn call_in_examples(cwd: &Path, args: &[&str]) -> Output {
+    let examples = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../examples");
+    Command::new(env!("CARGO_BIN_EXE_trellis"))
+        .args(args)
+        .current_dir(cwd)
+        .env("TRELLIS_ROOT", &examples)
+        .output()
+        .expect("binary runs")
+}
+
+#[test]
+fn call_runs_with_real_capabilities() {
+    let dir = std::env::temp_dir().join(format!(
+        "trellis-call-test-{}-{}",
+        std::process::id(),
+        COUNTER.fetch_add(1, Ordering::SeqCst)
+    ));
+    std::fs::create_dir_all(&dir).unwrap();
+    std::fs::write(dir.join("config.toml"), "port = 8080").unwrap();
+    let out = call_in_examples(&dir, &["call", "read_file", "\"config.toml\""]);
+    assert_eq!(out.status.code(), Some(0), "{}", stderr(&out));
+    assert_eq!(
+        String::from_utf8_lossy(&out.stdout),
+        "{\"tag\":\"Ok\",\"value\":\"port = 8080\"}\n"
+    );
+    // Relative paths resolve against the *caller's* cwd: a missing
+    // file there is the definition's own Err, not a panic.
+    let out = call_in_examples(&dir, &["call", "read_file", "\"absent.toml\""]);
+    assert_eq!(out.status.code(), Some(0));
+    assert!(String::from_utf8_lossy(&out.stdout).contains("\"NotFound\""));
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn call_rejects_bad_args_cleanly() {
+    let dir = std::env::temp_dir().join(format!(
+        "trellis-call-test-{}-{}",
+        std::process::id(),
+        COUNTER.fetch_add(1, Ordering::SeqCst)
+    ));
+    std::fs::create_dir_all(&dir).unwrap();
+
+    // An argument that does not decode against the parameter type.
+    let out = call_in_examples(&dir, &["call", "read_file", "42"]);
+    assert_eq!(out.status.code(), Some(1));
+    assert!(stderr(&out).contains("malformed-input"));
+
+    // Capability parameters are injected, never supplied: an extra
+    // data argument is a clean usage error.
+    let out = call_in_examples(&dir, &["call", "read_file", "\"a\"", "\"b\""]);
+    assert_eq!(out.status.code(), Some(2));
+    assert!(stderr(&out).contains("too many arguments"));
+
+    // Not JSON at all.
+    let out = call_in_examples(&dir, &["call", "read_file", "nope"]);
+    assert_eq!(out.status.code(), Some(2));
+    assert!(stderr(&out).contains("is not JSON"));
+
+    // TRELLIS_ROOT that is not a root fails loudly, not by walking.
+    let out = Command::new(env!("CARGO_BIN_EXE_trellis"))
+        .args(["call", "read_file", "\"x\""])
+        .current_dir(&dir)
+        .env("TRELLIS_ROOT", &dir)
+        .output()
+        .expect("binary runs");
+    assert_eq!(out.status.code(), Some(1));
+    assert!(stderr(&out).contains("config-no-root"));
+    let _ = std::fs::remove_dir_all(&dir);
+}

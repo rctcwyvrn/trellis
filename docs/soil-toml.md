@@ -20,7 +20,13 @@ tr-grammar §1 (tag validation), impl plan 03 §4.*
 
 A **Soil root** is any directory with a `soil.toml` at its top; every
 `.tr`/`.soil`/`.lock` under it belongs to that root, and roots never
-import across each other (design §7.2). The file is TOML, written by
+import across each other (design §7.2). The CLI discovers its root by
+walking up from the working directory, unless `TRELLIS_ROOT` is set —
+then that directory is the root (and must hold a `soil.toml`, else
+`config-no-root`). The env override exists for processes running
+*outside* the tree that still belong to it: the cram runner (impl
+plan 03 step 8, resolved 2026-08-28) exports it so a transcript in
+its fresh temp dir can invoke `trellis call` back into the root. The file is TOML, written by
 the human (and by `trellis toolchain update`, which rewrites exactly
 one table). The derived `soil.lock` manifest sits beside it,
 gitignored.

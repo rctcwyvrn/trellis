@@ -36,7 +36,24 @@ pub struct Config {
 
 /// The nearest ancestor of `start` containing a `soil.toml` (design
 /// §7.2: a Soil root is any directory with one at its top).
+/// Root discovery: `TRELLIS_ROOT` wins when set (the cram runner
+/// exports it so transcripts in temp dirs can call back into their
+/// root — resolved 2026-08-28, step 8), else walk up from `start`
+/// for a `soil.toml`.
 pub fn find_root(start: &Path) -> Result<PathBuf, ErrorReport> {
+    if let Some(root) = std::env::var_os("TRELLIS_ROOT") {
+        let root = PathBuf::from(root);
+        if root.join("soil.toml").is_file() {
+            return Ok(root);
+        }
+        return Err(ErrorReport::one(
+            "config-no-root",
+            format!(
+                "TRELLIS_ROOT={} has no soil.toml at its top",
+                root.display()
+            ),
+        ));
+    }
     let mut dir = start.to_path_buf();
     loop {
         if dir.join("soil.toml").is_file() {

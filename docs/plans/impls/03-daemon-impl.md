@@ -780,3 +780,28 @@ review pass) and propagated to the spec docs as noted.
       vocabulary suite (`finite`, `all_finite`, `non_empty`, `sorted`,
       `contains`, `count_of`, `is_permutation`) — authored like
       `parse_row.soil`, provenance `human-verified`.
+
+12. **Step-8 resolutions (2026-08-28, with the user).**
+    - *`trellis call` executes in the client*, not over the daemon
+      socket: it links soil0 anyway, and client-local execution makes
+      the real `Fs`'s relative paths resolve against the caller's
+      working directory — the cram temp dir — for free. The daemon
+      route was rejected as needing either a carried-cwd/rooted-Fs
+      mechanism or a per-call `chdir` in a threaded process. Contract
+      §8.6 injection semantics are shared with `soil0 run` through the
+      library (`interp::run_json`), so the two cannot drift; micro-pin
+      §8.13's REPL decision is untouched (step 12 revisits transport).
+    - *Root discovery honors `TRELLIS_ROOT`* before the `soil.toml`
+      walk (recorded in soil-toml §1): the cram runner exports it so
+      transcripts in temp dirs can call back into their root. Rejected:
+      temp dirs under `<root>/.trellis/` (transcripts writing inside
+      the project tree).
+    - *`trellis test` runs cram (mode `real`) by default* — the
+      real-mode exclusion is about the lowering sandbox's `run_tests`
+      tool, not the human CLI; transcripts are hermetic temp-dir
+      sessions the human wrote. The step-7 carried-rows mechanism is
+      removed.
+    - `read_file.tr`'s transcript expectation corrected to canonical
+      compact JSON (`{"tag":"Ok",…}`) — the hand-written spaced form
+      predated the real runner; cram matches literally and canonical
+      JSON is the §7 byte-equal form.
