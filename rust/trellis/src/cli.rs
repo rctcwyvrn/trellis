@@ -186,7 +186,25 @@ fn forward(command: &str, args: &[&str]) -> i32 {
     };
     let json_output = args.contains(&"--json");
     let args: Vec<&str> = args.iter().copied().filter(|a| *a != "--json").collect();
-    let params = serde_json::json!({ "args": args });
+    // `--out` is resolved client-side: the daemon's cwd is not ours.
+    let mut resolved: Vec<String> = Vec::with_capacity(args.len());
+    let mut absolutize_next = false;
+    for arg in &args {
+        if absolutize_next {
+            absolutize_next = false;
+            let path = std::path::Path::new(arg);
+            let abs = if path.is_absolute() {
+                path.to_path_buf()
+            } else {
+                std::env::current_dir().unwrap_or_default().join(path)
+            };
+            resolved.push(abs.display().to_string());
+        } else {
+            absolutize_next = method == "context" && *arg == "--out";
+            resolved.push((*arg).to_string());
+        }
+    }
+    let params = serde_json::json!({ "args": resolved });
     match client.call(&method, params) {
         Ok(Ok(result)) => {
             if method == "status" && !json_output {
@@ -194,6 +212,9 @@ fn forward(command: &str, args: &[&str]) -> i32 {
                 EXIT_OK
             } else if method == "test" && !json_output {
                 render_test(&result)
+            } else if method == "context" && !json_output {
+                render_context(&result);
+                EXIT_OK
             } else {
                 println!("{result}");
                 EXIT_OK
@@ -344,6 +365,18 @@ fn render_test(report: &serde_json::Value) -> i32 {
         1
     } else {
         EXIT_OK
+    }
+}
+
+/// The packed manifest, then where the bundle landed (`--json` for
+/// the raw result).
+fn render_context(result: &serde_json::Value) {
+    match result.get("rendered").and_then(|r| r.as_str()) {
+        Some(text) => print!("{text}"),
+        None => println!("{result}"),
+    }
+    if let Some(out) = result.get("out").and_then(|o| o.as_str()) {
+        println!("written to {out}");
     }
 }
 

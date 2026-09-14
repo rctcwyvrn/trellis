@@ -1,0 +1,2 @@
+outside : (x : I64) -> I64
+outside x = x

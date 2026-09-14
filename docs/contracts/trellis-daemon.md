@@ -245,7 +245,15 @@ when no decisions exist in scope; travels at spec priority (§5).
 
 ### 4.4 `callees/<name>.md`
 
-One file per direct callee: **signatures only, never bodies** (design
+One file per definition on the **callable surface** — every *lowered*
+function in the root visible to the target, nearest-first (the
+target's module before others), the target itself excluded. (Amended
+2026-09-14, step 9: the draft said "one per direct callee", which is
+circular on a first lowering — no body, no known edges — and the
+first lowering is the bundle's main audience. The serial lowering
+order, design §4.6, makes exactly the lowered definitions available,
+so the surface *is* the menu; the packer's callee tier prunes
+farthest-first at scale.) **Signatures only, never bodies** (design
 §4.6). Content: the callee's `soil-sig` block; its
 `requires`/`ensures` clauses, each annotated with its lock-schema §4
 assurance; a `runtime` (demoted) clause is shown as the **base type
@@ -316,6 +324,19 @@ spec (spec.md, decisions.md, bundle.json)  >  tests (tests.json)
 - Dropping is coarsest-first within a tier (a whole callee file, a
   whole example pair) and every drop is listed in
   `bundle.json.dropped` and logged — no silent caps.
+- `previous.soil` and `reference.py` sit between tests and callee
+  signatures (step 9, 2026-09-14): the body under revision and the
+  executable spec outrank the callable menu, but unlike the §4.5 set
+  they *are* droppable under extreme budgets.
+- The packer keeps the longest priority-order prefix that fits: the
+  first over-budget item and everything after it drop (step 9,
+  2026-09-14). This makes the packed set and the estimate monotone in
+  the budget and the drop order predictable for the agent; greedy
+  skip-and-continue was rejected because a grown budget could then
+  produce a *different* (not larger) bundle. `estimate` counts the
+  packed bytes plus the rendered manifest, so it can exceed a tight
+  budget by the manifest's own size — the bytes/4 estimate is
+  approximate by declaration (§8.10).
 - Module prose (`_module.tr`'s prose, lowest tier) is packed as
   `module.md` when it fits.
 

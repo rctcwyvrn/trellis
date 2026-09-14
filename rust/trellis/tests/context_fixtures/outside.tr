@@ -1,0 +1,15 @@
+---
+name: outside
+---
+
+# outside
+
+A root-level definition — the farther callee and corpus pair.
+
+```soil-sig
+outside : (x : I64) -> I64
+```
+
+```test identity
+(7) => 7
+```

@@ -1,0 +1,12 @@
+---
+name: context_fixtures
+---
+
+# context_fixtures
+
+The packer fixture project.
+
+```decisions
+units: sizes are cell counts, never bytes
+rejected: bytes (ambiguous across encodings)
+```

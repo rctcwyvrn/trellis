@@ -1,0 +1,9 @@
+target : (xs : {v : List F64 | len v > 0}) -> {r : List F64 | len r == len xs}
+target xs =
+  let n = list_len xs in
+  let rec go = fun i acc ->
+    if i == n
+    then acc
+    else go (i + 1) (list_append acc (list_nth xs i * 2.0))
+  in
+  go 0 list_empty

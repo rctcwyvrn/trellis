@@ -212,6 +212,12 @@ fn manifest_merges_examples() {
             if path.is_dir() {
                 stack.push(path);
             } else if path.extension().is_some_and(|e| e == "lock") {
+                // Only sidecars merge: a lock belongs to the Soil root
+                // iff its `.tr` does (the trellis-prose worked example
+                // under examples/prose/ carries a foreign lock schema).
+                if !path.with_extension("tr").is_file() {
+                    continue;
+                }
                 let rel = path
                     .strip_prefix(examples())
                     .unwrap()

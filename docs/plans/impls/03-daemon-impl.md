@@ -805,3 +805,28 @@ review pass) and propagated to the spec docs as noted.
       compact JSON (`{"tag":"Ok",…}`) — the hand-written spaced form
       predated the real runner; cram matches literally and canonical
       JSON is the §7 byte-equal form.
+
+13. **Step-9 resolutions (2026-09-14, with the user).**
+    - *`callees/` is the callable surface*: one signature file per
+      lowered function in the root, nearest-first (target's module
+      before others), target excluded. Contract §4.4's "one per direct
+      callee" was circular on a first lowering (no body, no edges) —
+      the case the bundle chiefly serves; the serial lowering order
+      makes the lowered set exactly the callable menu. Rejected:
+      known-edges-only (an empty `callees/` for `mean` hides the
+      module's own helpers) and same-module-only (exported
+      cross-module helpers vanish). Amended in contract §4.4.
+    - *`trellis context` writes `.trellis/context/<def>/` by default*
+      (already gitignored; wiped per invocation); `--out <dir>` must
+      be empty or absent and is resolved client-side (the daemon's
+      cwd is not the caller's).
+    - *Prefix packing*: the packer keeps the longest priority-order
+      prefix that fits; the first over-budget item and everything
+      after it drop. Chosen over greedy skip-and-continue so the
+      packed set and estimate are monotone in the budget (the pinned
+      property) and drops read predictably. `previous.soil` and
+      `reference.py` sit between tests and callees — droppable, but
+      only under extreme budgets. Both recorded in contract §5.
+    - The corpus is the root's own `.tr`/`.soil` pairs until plan 04
+      (the examples root is the v1 corpus and is also the only v1
+      root); `module.md` is the target module's `_module.tr` verbatim.

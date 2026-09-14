@@ -1,0 +1,15 @@
+---
+name: m
+---
+
+# m
+
+The fixture module: one target, one helper.
+
+```exports
+target
+```
+
+```decisions
+naming: helpers stay single-word
+```

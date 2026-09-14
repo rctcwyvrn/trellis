@@ -11,6 +11,7 @@
 // size heuristic would be noise.
 #![allow(clippy::result_large_err)]
 
+pub mod bundle;
 pub mod cli;
 pub mod config;
 pub mod cram;

@@ -131,6 +131,10 @@ fn dispatch(request: Request, state: &State) -> Response {
                 Err(report) => diag_error(id, &report),
             }
         }
+        "context" => match context_command(state, &request.params) {
+            Ok(out) => Response::ok(id, out),
+            Err(report) => diag_error(id, &report),
+        },
         method if MUTATING.contains(&method) => {
             // The pin gate, live from the first command (soil-toml §2.1).
             let gate = config::load(&state.root).and_then(|c| {
@@ -205,6 +209,63 @@ fn dispatch(request: Request, state: &State) -> Response {
             None,
         ),
     }
+}
+
+/// `trellis context <def> --budget <n> [--out <dir>]` (contract §5):
+/// assemble the bundle, write it to the default `.trellis/context/…`
+/// (wiped per invocation) or the caller's `--out` (must be empty),
+/// return the manifest.
+fn context_command(
+    state: &State,
+    params: &serde_json::Value,
+) -> Result<serde_json::Value, ErrorReport> {
+    let args: Vec<&str> = params
+        .get("args")
+        .and_then(|a| a.as_array())
+        .map(|a| a.iter().filter_map(|v| v.as_str()).collect())
+        .unwrap_or_default();
+    let usage = || {
+        ErrorReport::one(
+            "usage",
+            "usage: trellis context <def> --budget <n> [--out <dir>]",
+        )
+    };
+    let mut def: Option<&str> = None;
+    let mut budget: Option<u64> = None;
+    let mut out: Option<&str> = None;
+    let mut iter = args.iter();
+    while let Some(arg) = iter.next() {
+        match *arg {
+            "--budget" => {
+                budget = Some(iter.next().and_then(|v| v.parse().ok()).ok_or_else(usage)?)
+            }
+            "--out" => out = Some(iter.next().ok_or_else(usage)?),
+            _ if def.is_none() => def = Some(arg),
+            _ => return Err(usage()),
+        }
+    }
+    let (Some(def), Some(budget)) = (def, budget) else {
+        return Err(usage());
+    };
+
+    let config = config::load(&state.root)?;
+    let root = crate::state::scan(&state.root, &config)?;
+    let entry = root
+        .entries
+        .values()
+        .find(|e| e.tr.name == def || e.rel == def)
+        .ok_or_else(|| ErrorReport::one("usage", format!("no definition `{def}` in this root")))?;
+    let bundle = crate::bundle::assemble(&root, entry, budget)?;
+    let (out_dir, allow_wipe) = match out {
+        Some(dir) => (PathBuf::from(dir), false),
+        None => (state.root.join(".trellis/context").join(&entry.rel), true),
+    };
+    crate::bundle::write_to(&bundle, &out_dir, allow_wipe)?;
+    Ok(serde_json::json!({
+        "out": out_dir.display().to_string(),
+        "manifest": bundle.manifest,
+        "rendered": bundle.manifest_text,
+    }))
 }
 
 fn status_report(state: &State) -> Result<serde_json::Value, ErrorReport> {

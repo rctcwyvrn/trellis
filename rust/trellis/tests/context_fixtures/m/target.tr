@@ -1,0 +1,28 @@
+---
+name: target
+---
+
+# target
+
+Doubles every cell of a non-empty list.
+
+```soil-sig
+target : (xs : List F64) -> List F64
+```
+
+```requires
+non-empty: len(xs) > 0
+```
+
+```ensures
+length-kept: len(result) == len(xs)
+```
+
+```reference
+ref/check.py::double_all
+```
+
+```test doubles
+([1.0, 2.0]) => [2.0, 4.0]
+([3.0]) => [6.0]
+```

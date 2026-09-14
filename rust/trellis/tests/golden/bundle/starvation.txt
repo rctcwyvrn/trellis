@@ -1,0 +1,180 @@
+===== bundle.json =====
+{
+  "definition": "m/target",
+  "budget": 550,
+  "estimate": 718,
+  "packed": [
+    "spec.md",
+    "decisions.md",
+    "tests.json",
+    "previous.soil",
+    "reference.py",
+    "callees/len.md",
+    "callees/outside.md",
+    "examples/m/len.tr",
+    "examples/m/len.soil"
+  ],
+  "dropped": [
+    {
+      "item": "examples/outside.tr",
+      "reason": "budget"
+    },
+    {
+      "item": "module.md",
+      "reason": "budget"
+    }
+  ],
+  "oracle": {
+    "tag": "Reference",
+    "value": {
+      "path": "ref/check.py",
+      "symbol": "double_all"
+    }
+  },
+  "spec_hashes": {
+    "formal": "sha256:59df629f1fa58aaa3de37003f7b5deeea6ad593990c6c297d31e4be8a3382a3b",
+    "test": "sha256:11737c6f6dad94abc245fc39c5de6686d5add0699787eae832926f4079a800a3",
+    "prose": "sha256:989d2accdf6be40993983d4f62bef19b14c5caf19978c9d0d9084711c251579b"
+  }
+}
+===== spec.md =====
+---
+name: target
+---
+
+# target
+
+Doubles every cell of a non-empty list.
+
+```soil-sig
+target : (xs : List F64) -> List F64
+```
+
+```requires
+non-empty: len(xs) > 0
+```
+
+```ensures
+length-kept: len(result) == len(xs)
+```
+
+```reference
+ref/check.py::double_all
+```
+
+```test doubles
+([1.0, 2.0]) => [2.0, 4.0]
+([3.0]) => [6.0]
+```
+===== decisions.md =====
+# Decisions
+
+## project
+
+- **units** — sizes are cell counts, never bytes
+  rejected: bytes (ambiguous across encodings)
+
+## module m
+
+- **naming** — helpers stay single-word
+===== tests.json =====
+{
+  "cases": [
+    {
+      "args": [
+        {
+          "tag": "Json",
+          "value": [
+            1.0,
+            2.0
+          ]
+        }
+      ],
+      "binds": [],
+      "def": "target",
+      "expect": {
+        "tag": "Value",
+        "value": [
+          2.0,
+          4.0
+        ]
+      },
+      "name": "doubles#1",
+      "xfail": false
+    },
+    {
+      "args": [
+        {
+          "tag": "Json",
+          "value": [
+            3.0
+          ]
+        }
+      ],
+      "binds": [],
+      "def": "target",
+      "expect": {
+        "tag": "Value",
+        "value": [
+          6.0
+        ]
+      },
+      "name": "doubles#2",
+      "xfail": false
+    }
+  ]
+}
+===== previous.soil =====
+target : (xs : {v : List F64 | len v > 0}) -> {r : List F64 | len r == len xs}
+target xs =
+  let n = list_len xs in
+  let rec go = fun i acc ->
+    if i == n
+    then acc
+    else go (i + 1) (list_append acc (list_nth xs i * 2.0))
+  in
+  go 0 list_empty
+===== reference.py =====
+"""Reference for the packer fixture."""
+
+
+def double_all(xs):
+    return [x * 2 for x in xs]
+===== callees/len.md =====
+# len
+
+```soil-sig
+len : (xs : List F64) -> I64
+```
+
+- ensures `non-negative` (runtime — demoted, guard active; do not rely on this claim when reasoning about your own obligations): result >= 0
+===== callees/outside.md =====
+# outside
+
+```soil-sig
+outside : (x : I64) -> I64
+```
+===== examples/m/len.tr =====
+---
+name: len
+---
+
+# len
+
+The number of cells in a list.
+
+```soil-sig
+len : (xs : List F64) -> I64
+```
+
+```ensures
+non-negative: result >= 0
+```
+
+```test counts
+([]) => 0
+([1.0]) => 1
+```
+===== examples/m/len.soil =====
+len : (xs : List F64) -> I64
+len xs = list_len xs

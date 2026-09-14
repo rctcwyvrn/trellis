@@ -1,0 +1,20 @@
+---
+name: len
+---
+
+# len
+
+The number of cells in a list.
+
+```soil-sig
+len : (xs : List F64) -> I64
+```
+
+```ensures
+non-negative: result >= 0
+```
+
+```test counts
+([]) => 0
+([1.0]) => 1
+```

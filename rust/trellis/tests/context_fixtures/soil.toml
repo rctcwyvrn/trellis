@@ -1,0 +1,6 @@
+# Step-9 packer fixtures: a target with reference, decisions in both
+# scopes, a same-module callee, and a farther root-level definition.
+
+[toolchain]
+trellis = "0.1.0"
+soil0_cli = 1
