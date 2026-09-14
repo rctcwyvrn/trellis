@@ -6,6 +6,7 @@
 - [Soil syntax](soil-syntax.md)
 - [Soil syntax spec](soil-syntax-spec.md)
 - [Bootstrap plan](bootstrap-plan.md)
+- [Trellis-prose (sibling design)](trellis-prose.md)
 
 # Contracts
 

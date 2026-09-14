@@ -1,0 +1,23 @@
+---
+name: small_languages
+style: style.md
+---
+
+# small_languages
+
+A short essay for the project site arguing the minimalism tenet. Audience:
+programmers who have not seen Trellis or Soil before. The C++ figure is
+deliberately rough; keep it hedged as "roughly".
+
+```plan
+heading 1: Why small languages
+paragraph: surface area is what a checker must distrust
+sentence: every construct a language adds is another form its checker must distrust
+example: C++ has ~20 forms of initialization
+contrast: Soil has one
+bridge to: what minimalism buys a language written by machines
+paragraph:
+define: hallucination — an agent emitting plausible code nobody asked for
+sentence: an agent hallucinates in proportion to the choices its language offers
+restate: fewer forms, fewer places to be wrong
+```
