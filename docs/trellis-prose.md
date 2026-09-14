@@ -192,6 +192,13 @@ the verdict as a judgment. If judging proves unreliable, mechanical rules
 can be added later as a *floor* under the guide (§8.2) without invalidating
 the format.
 
+**V1 staging (decided 2026-09-14, plan P1):** the first tool ships with the
+human as the judge — the mechanical checks gate, and setting `accepted`
+doubles as the style verdict, recorded in the lock as `judge: human`. An
+agent judge (in-session first, tool-invoked later) remains the intended end
+state; it is deferred so that v1 carries no judging machinery to trust
+before the workflow has been exercised.
+
 ### 5.2 Freshness
 
 The style guide is hashed into every lock that references it. Editing it

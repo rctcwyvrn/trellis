@@ -21,7 +21,7 @@
   "checks": {
     "parse": "ok",
     "structure": "ok",
-    "style": { "judge": "agent", "model": "claude-fable-5", "result": "pass" }
+    "style": { "judge": "human", "result": "pass" }
   },
   "accepted": true
 }
