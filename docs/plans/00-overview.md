@@ -35,6 +35,12 @@ decision points.*
 | [`06-ffi-bind-ide.md`](06-ffi-bind-ide.md) | FFI (Rust + Python), `trellis bind`, minimal IDE | 05 |
 | [`07-python-glue.md`](07-python-glue.md) | The second project: validate the FFI half of the pitch | 06 |
 
+## Sibling track: trellis-prose
+
+| Plan | Milestone | Depends on |
+|---|---|---|
+| [`prose-01-trp.md`](prose-01-trp.md) | The `trp` checker crate (parse, verify, locks) | — (shares the Rust workspace; independent of the Soil sequence) |
+
 Rust code accumulates in one workspace (`soil-rt`, `soil0`, later the
 daemon and the Cranelift driver). Trellis code (prelude, soilc) lives in
 Soil roots with `soil.toml`. Nothing in these plans exists yet; the repo is

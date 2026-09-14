@@ -1,0 +1,27 @@
+{
+  "lock_format": 1,
+  "name": "small_languages",
+  "kind": "document",
+  "versions": { "trellis-prose": "0.1" },
+  "spec": {
+    "provenance": "human",
+    "hashes": {
+      "plan": "sha256:7d81c3f0",
+      "notes": "sha256:2b90aa14",
+      "style": "sha256:e3f60b77"
+    }
+  },
+  "lowering": {
+    "output_hash": "sha256:41c2d9be",
+    "provenance": "agent",
+    "provider": "claude-code",
+    "model": "claude-fable-5",
+    "directives": { "prose": 7, "paragraphs": 2, "headings": 1 }
+  },
+  "checks": {
+    "parse": "ok",
+    "structure": "ok",
+    "style": { "judge": "human", "result": "pass" }
+  },
+  "accepted": true
+}

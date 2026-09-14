@@ -7,6 +7,7 @@
 - [Soil syntax spec](soil-syntax-spec.md)
 - [soil.toml](soil-toml.md)
 - [Bootstrap plan](bootstrap-plan.md)
+- [Trellis-prose (sibling design)](trellis-prose.md)
 
 # Contracts
 
@@ -26,6 +27,7 @@
   - [05 — soilc](plans/05-soilc.md)
   - [06 — FFI, bind, IDE](plans/06-ffi-bind-ide.md)
   - [07 — python glue](plans/07-python-glue.md)
+  - [P1 — trp (trellis-prose)](plans/prose-01-trp.md)
 
 # Examples
 
